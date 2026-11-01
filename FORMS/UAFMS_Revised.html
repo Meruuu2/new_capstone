@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UA — Facility Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+<style>
+/* ===== DESIGN TOKENS ===== */
+:root{
+  --color-primary:#1a56a0;
+  --color-primary-dark:#0d3d7a;
+  --color-primary-light:#E6F1FB;
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#F7F8FA;
+  --color-background-tertiary:#F0F2F5;
+  --color-text-primary:#1A1A2E;
+  --color-text-secondary:#5A6472;
+  --color-text-tertiary:#9AA3AE;
+  --color-border-primary:#D1D8E0;
+  --color-border-secondary:#E0E6ED;
+  --color-border-tertiary:#EEF1F5;
+  --color-success:#2E7D32;
+  --color-success-bg:#EAF5EA;
+  --color-warning:#B45309;
+  --color-warning-bg:#FEF3C7;
+  --color-danger:#B91C1C;
+  --color-danger-bg:#FEE2E2;
+  --color-purple:#4C3BCF;
+  --color-purple-bg:#EDE9FE;
+  --font-sans:'DM Sans',sans-serif;
+  --font-display:'DM Serif Display',serif;
+  --border-radius-sm:4px;
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+  --border-radius-xl:16px;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.07);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.14);
+}
+
+/* ===== RESET ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--color-background-tertiary);color:var(--color-text-primary);font-size:14px;-webkit-font-smoothing:antialiased}
+input,select,textarea,button{font-family:inherit}
+a{color:inherit;text-decoration:none}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--color-border-primary);border-radius:10px}
+
+/* ===== SHARED BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--color-border-primary);background:var(--color-background-primary);color:var(--color-text-primary);transition:all .15s}
+.btn:hover{background:var(--color-background-secondary);border-color:var(--color-border-primary)}
+.btn-p{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.btn-p:hover{background:var(--color-primary-dark);border-color:var(--color-primary-dark)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* ===== BADGES ===== */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--color-success-bg);color:var(--color-success)}
+.badge-amber{background:var(--color-warning-bg);color:var(--color-warning)}
+.badge-red{background:var(--color-danger-bg);color:var(--color-danger)}
+.badge-blue{background:var(--color-primary-light);color:var(--color-primary)}
+.badge-gray{background:#F1F2F4;color:#64748B}
+.badge-purple{background:var(--color-purple-bg);color:var(--color-purple)}
+.ba{background:var(--color-success-bg);color:var(--color-success)}
+.bp{background:var(--color-warning-bg);color:var(--color-warning)}
+.br{background:var(--color-danger-bg);color:var(--color-danger)}
+.binfo{background:var(--color-primary-light);color:var(--color-primary)}
+
+/* ===== TABLES ===== */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-weight:500;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--color-text-tertiary);border-bottom:1px solid var(--color-border-tertiary);white-space:nowrap;background:var(--color-background-secondary)}
+td{padding:10px 14px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--color-background-secondary)}
+.table-wrap{overflow:auto}
+
+/* ===== ACTION BTNS ===== */
+.action-btn{padding:5px 11px;border:1px solid var(--color-border-secondary);border-radius:var(--border-radius-sm);cursor:pointer;font-size:11px;font-weight:500;background:var(--color-background-primary);color:var(--color-text-primary);transition:all .15s}
+.action-btn:hover{background:var(--color-background-secondary)}
+.action-btn.primary{background:var(--color-primary-light);border-color:#B5D4F4;color:var(--color-primary)}
+.action-btn.primary:hover{background:#D2E8F9}
+
+/* ===== MODALS ===== */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.45);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-xl);width:480px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-close{cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--color-text-tertiary);line-height:1;background:var(--color-background-secondary)}
+.modal-close:hover{background:var(--color-border-tertiary)}
+.modal-body{padding:22px}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--color-border-tertiary);display:flex;justify-content:flex-end;gap:8px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:5px;display:block}
+.form-input{width:100%;padding:8px 11px;border:1px solid var(--color-border-primary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);transition:border-color .15s}
+.form-input:focus{outline:none;border-color:var(--color-primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar{height:6px;border-radius:3px;background:var(--color-background-secondary);overflow:hidden}
+.progress-fill{height:100%;border-radius:3px}
+.eq-bar{height:5px;border-radius:3px;background:var(--color-background-secondary);overflow:hidden;width:72px}
+.eq-fill{height:100%;border-radius:3px;background:var(--color-primary)}
+
+/* ===== FILTER TABS ===== */
+.filter-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;width:fit-content}
+.filter-tab{padding:7px 16px;font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);background:var(--color-background-primary);transition:all .15s}
+.filter-tab:hover{background:var(--color-background-secondary)}
+.filter-tab.active{background:var(--color-primary);color:#fff}
+
+/* ===== CARDS ===== */
+.card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;box-shadow:var(--shadow-xs)}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600}
+.card-body{padding:0}
+.equip-table-wrap{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow-xs)}
+
+/* ===== SEARCH BAR ===== */
+.search-bar{display:flex;gap:10px;margin-bottom:16px}
+.search-bar input{flex:1;padding:8px 12px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.search-bar input:focus{outline:none;border-color:var(--color-primary)}
+.search-bar select{padding:8px 12px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)}
+
+/* ===================================================
+   LANDING PAGE
+=================================================== */
+.wrap{display:flex;flex-direction:column;min-height:600px}
+.land{background:#fff}
+.land-nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:62px;border-bottom:1px solid var(--color-border-tertiary);position:sticky;top:0;background:#fff;z-index:50;box-shadow:var(--shadow-xs)}
+.land-logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;flex-shrink:0;box-shadow:0 2px 8px rgba(26,86,160,.3)}
+.logo-text{font-size:13px;font-weight:600;color:var(--color-text-primary)}
+.logo-sub{font-size:11px;color:var(--color-text-secondary)}
+.nav-links{display:flex;gap:28px}
+.nav-link{font-size:13px;color:var(--color-text-secondary);cursor:pointer;padding:4px 0;transition:color .15s}
+.nav-link:hover{color:var(--color-text-primary)}
+.nav-btns{display:flex;gap:10px}
+.hero{padding:80px 40px 64px;text-align:center;background:linear-gradient(180deg,#f0f5fb 0%,var(--color-background-tertiary) 100%)}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 15px;border-radius:20px;background:#1a56a015;color:var(--color-primary);font-size:11px;font-weight:600;margin-bottom:18px;letter-spacing:.3px;border:1px solid #1a56a020}
+.hero h1{font-family:var(--font-display);font-size:36px;font-weight:400;line-height:1.3;max-width:560px;margin:0 auto 12px;color:var(--color-text-primary)}
+.hero p{font-size:14px;color:var(--color-text-secondary);max-width:460px;margin:0 auto 28px;line-height:1.75}
+.hero-btns{display:flex;gap:12px;justify-content:center}
+.feat-section{padding:56px 40px;max-width:960px;margin:0 auto}
+.sec-title{font-family:var(--font-display);font-size:26px;font-weight:400;text-align:center;margin-bottom:8px}
+.sec-sub{font-size:14px;color:var(--color-text-secondary);text-align:center;margin-bottom:36px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat-card{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-xl);padding:22px;box-shadow:var(--shadow-xs);transition:box-shadow .2s,transform .2s}
+.feat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.feat-icon{font-size:22px;margin-bottom:12px;width:44px;height:44px;border-radius:var(--border-radius-md);background:var(--color-background-tertiary);display:flex;align-items:center;justify-content:center}
+.feat-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.feat-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.65}
+.stats-band{background:var(--color-primary);padding:44px 40px;text-align:center}
+.stats-band-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:740px;margin:0 auto}
+.sb-num{font-family:var(--font-display);font-size:32px;font-weight:400;color:#fff;margin-bottom:5px}
+.sb-lbl{font-size:12px;color:rgba(255,255,255,.65)}
+.fac-section{padding:56px 40px;max-width:960px;margin:0 auto}
+.fac-grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.fac-card-land{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:18px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow-xs);transition:box-shadow .2s}
+.fac-card-land:hover{box-shadow:var(--shadow-sm)}
+.fac-ico{font-size:24px;flex-shrink:0;margin-top:2px;width:44px;height:44px;background:var(--color-background-tertiary);border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center}
+.fac-name-land{font-size:13px;font-weight:600;margin-bottom:4px}
+.fac-desc-land{font-size:12px;color:var(--color-text-secondary);line-height:1.55}
+.land-footer{background:#fff;border-top:1px solid var(--color-border-tertiary);padding:22px 40px;text-align:center;font-size:12px;color:var(--color-text-tertiary)}
+
+/* ===================================================
+   LOGIN
+=================================================== */
+.login-wrap{min-height:100vh;background:linear-gradient(135deg,#f0f5fb 0%,#e8f0fb 100%);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-box{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-xl);padding:36px;width:380px;box-shadow:var(--shadow-lg)}
+.form-group-login{margin-bottom:13px}
+.form-label-login{font-size:12px;color:var(--color-text-secondary);margin-bottom:5px;display:block;font-weight:500}
+.form-control-login{width:100%;padding:9px 12px;border:1px solid var(--color-border-primary);border-radius:var(--border-radius-md);background:#fff;font-size:13px;color:var(--color-text-primary);transition:border-color .15s}
+.form-control-login:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(26,86,160,.08)}
+.role-toggle{display:flex;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:22px}
+.role-btn{flex:1;padding:9px 12px;font-size:12px;font-weight:500;cursor:pointer;background:#fff;color:var(--color-text-secondary);border:none;transition:all .15s;text-align:center}
+.role-btn:not(:last-child){border-right:1px solid var(--color-border-tertiary)}
+.role-btn.active{background:var(--color-primary);color:#fff}
+.login-error{background:#FEE2E2;color:#B91C1C;border-radius:var(--border-radius-md);padding:9px 14px;font-size:12px;margin-bottom:13px;display:none}
+
+/* ===================================================
+   ADMIN APP
+=================================================== */
+.admin-app{display:flex;height:100vh;min-height:700px;overflow:hidden}
+.admin-sidebar{width:230px;min-width:230px;background:#fff;border-right:1px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--color-border-tertiary)}
+.sidebar-logo-icon{width:38px;height:38px;border-radius:10px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 2px 8px rgba(26,86,160,.3)}
+.logo-title{font-size:12px;font-weight:600;color:var(--color-primary);line-height:1.35}
+.logo-sub2{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.admin-nav-section{padding:10px 0}
+.admin-nav-label{font-size:10px;font-weight:600;color:var(--color-text-tertiary);padding:8px 18px 4px;text-transform:uppercase;letter-spacing:.6px}
+.admin-nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;font-size:13px;color:var(--color-text-secondary);border-left:2px solid transparent;transition:all .15s}
+.admin-nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.admin-nav-item.active{background:#EBF3FD;color:var(--color-primary);border-left-color:var(--color-primary);font-weight:500}
+.nav-icon{width:16px;height:16px;opacity:.65;flex-shrink:0}
+.admin-nav-item.active .nav-icon{opacity:1}
+.admin-main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.admin-topbar{background:#fff;border-bottom:1px solid var(--color-border-tertiary);padding:0 26px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow-xs)}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.admin-avatar{width:34px;height:34px;border-radius:50%;background:#EBF3FD;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--color-primary)}
+.admin-content{padding:22px 26px;flex:1}
+.admin-page{display:none}
+.admin-page.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.page-title{font-size:18px;font-weight:600}
+.btn-primary{padding:8px 16px;background:var(--color-primary);border:none;border-radius:var(--border-radius-md);color:#fff;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;box-shadow:0 1px 4px rgba(26,86,160,.2)}
+.btn-primary:hover{background:var(--color-primary-dark)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px 18px;box-shadow:var(--shadow-xs)}
+.stat-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:7px;text-transform:uppercase;letter-spacing:.4px}
+.stat-value{font-size:24px;font-weight:600;line-height:1}
+.stat-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:5px}
+.stat-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.activity-item{display:flex;align-items:flex-start;gap:11px;padding:11px 18px;border-bottom:1px solid var(--color-border-tertiary)}
+.activity-item:last-child{border-bottom:none}
+.act-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act-text{font-size:13px;color:var(--color-text-secondary);line-height:1.5}
+.act-time{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.cal-grid{padding:14px 18px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-size:13px;font-weight:600}
+.cal-nav{display:flex;gap:5px}
+.cal-btn{width:26px;height:26px;border:1px solid var(--color-border-tertiary);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;background:#fff;color:var(--color-text-secondary);transition:all .15s}
+.cal-btn:hover{background:var(--color-background-secondary)}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-day-label{font-size:10px;color:var(--color-text-tertiary);padding:3px 0;font-weight:600}
+.cal-day{font-size:11px;padding:5px 2px;border-radius:5px;cursor:pointer;color:var(--color-text-secondary);position:relative;transition:background .15s}
+.cal-day:hover{background:var(--color-background-secondary)}
+.cal-day.today{background:#EBF3FD;color:var(--color-primary);font-weight:600}
+.cal-day.has-event::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--color-primary)}
+.cal-day.other-month{color:var(--color-text-tertiary);opacity:.4}
+.facility-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.fac-card{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;box-shadow:var(--shadow-xs)}
+.fac-img{height:84px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.fac-img.gym{background:#EBF3FD}
+.fac-img.lab{background:#ECFDF5}
+.fac-img.conf{background:#EDE9FE}
+.fac-img.audi{background:#FEF3C7}
+.fac-img.lib{background:#ECFDF5}
+.fac-img.field{background:#F0FDF4}
+.fac-body{padding:14px}
+.fac-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.fac-cap{font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px}
+.fac-footer{display:flex;align-items:center;justify-content:space-between}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.report-stat{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px 18px;box-shadow:var(--shadow-xs)}
+
+/* ===================================================
+   USER / OU PORTAL
+=================================================== */
+.user-app{display:flex;height:100vh;min-height:700px;overflow:hidden}
+.user-sidebar{width:220px;min-width:220px;background:#fff;border-right:1px solid var(--color-border-tertiary);display:flex;flex-direction:column}
+.user-logo{padding:18px;border-bottom:1px solid var(--color-border-tertiary)}
+.logo-badge{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.logo-name{font-size:14px;font-weight:600;margin-top:3px}
+.logo-role{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;background:#EBF3FD;color:var(--color-primary);font-weight:600;margin-top:5px}
+.user-nav{padding:10px 8px;flex:1;overflow-y:auto}
+.user-nav-sec{font-size:10px;font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.6px;padding:10px 10px 4px}
+.user-nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);margin-bottom:2px;transition:all .15s}
+.user-nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.user-nav-item.active{background:#EBF3FD;color:var(--color-primary);font-weight:500}
+.ni{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.user-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.user-topbar{background:#fff;border-bottom:1px solid var(--color-border-tertiary);padding:0 22px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow-xs)}
+.tb-title{font-size:15px;font-weight:600}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:#EBF3FD;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--color-primary)}
+.user-content{flex:1;overflow-y:auto;padding:22px}
+.user-page{display:none}
+.user-page.active{display:block}
+.bc{font-size:12px;color:var(--color-text-secondary);margin-bottom:16px}
+.bc span{color:var(--color-primary);cursor:pointer}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.pt{font-size:18px;font-weight:600}
+.ps{font-size:13px;color:var(--color-text-secondary);margin-top:3px}
+.user-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--color-border-primary);background:#fff;color:var(--color-text-primary);transition:all .15s}
+.user-btn:hover{background:var(--color-background-secondary)}
+.user-btn-p{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.user-btn-p:hover{background:var(--color-primary-dark)}
+.user-btn-sm{padding:5px 11px;font-size:11px}
+.user-card{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:18px;box-shadow:var(--shadow-xs)}
+.card-t{font-size:13px;font-weight:600;margin-bottom:14px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.sc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px}
+.sl{font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.sn{font-size:22px;font-weight:600}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.user-fac-card{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;box-shadow:var(--shadow-xs)}
+.user-fac-img{height:84px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.user-fac-body{padding:12px}
+.fac-n{font-size:13px;font-weight:600;margin-bottom:3px}
+.fac-d{font-size:11px;color:var(--color-text-tertiary);margin-bottom:9px}
+.notif-icon{width:32px;height:32px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--color-text-secondary);position:relative}
+.ndot{width:8px;height:8px;border-radius:50%;background:#EF4444;position:absolute;top:2px;right:2px;border:1.5px solid #fff}
+
+/* ===================================================
+   BOOKING FORM
+=================================================== */
+.step-nav{display:flex;align-items:center;gap:0;margin-bottom:26px;background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;box-shadow:var(--shadow-xs)}
+.step{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--color-text-tertiary);padding:12px 18px;border-bottom:2px solid transparent;flex:1;transition:all .15s}
+.step.done{color:var(--color-success);border-bottom-color:var(--color-success)}
+.step.active{color:var(--color-primary);border-bottom-color:var(--color-primary);font-weight:500;background:#EBF3FD}
+.step-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:var(--color-background-secondary);color:var(--color-text-secondary);flex-shrink:0}
+.step.active .step-num{background:var(--color-primary);color:#fff}
+.step.done .step-num{background:var(--color-success-bg);color:var(--color-success)}
+.form-section{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-xs)}
+.fs-title{font-size:11px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--color-border-tertiary)}
+.user-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px}
+.user-form-group{margin-bottom:13px}
+.user-form-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:5px;display:block;font-weight:500}
+.user-form-control{width:100%;padding:8px 12px;border:1px solid var(--color-border-primary);border-radius:var(--border-radius-md);background:#fff;font-size:13px;color:var(--color-text-primary);transition:border-color .15s}
+.user-form-control:focus{outline:none;border-color:var(--color-primary);box-shadow:0 0 0 3px rgba(26,86,160,.08)}
+.venue-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:6px}
+.venue-item{display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;transition:all .15s;background:#fff}
+.venue-item:hover{background:var(--color-background-secondary);border-color:var(--color-border-primary)}
+.venue-item.selected{border-color:var(--color-primary);background:#EBF3FD;color:var(--color-primary);font-weight:500}
+.upload-zone{border:1.5px dashed var(--color-border-primary);border-radius:var(--border-radius-md);padding:24px;text-align:center;cursor:pointer;background:var(--color-background-secondary);transition:border-color .15s}
+.upload-zone:hover{border-color:var(--color-primary)}
+.review-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--color-border-tertiary);font-size:13px}
+.review-row:last-child{border-bottom:none}
+.rl{color:var(--color-text-secondary);width:42%}
+.rv{font-weight:500;flex:1;text-align:right}
+.success-box{text-align:center;padding:50px 20px}
+
+/* ===================================================
+   EQUIPMENT QUANTITY CHIPS (NEW DESIGN)
+=================================================== */
+.equip-item{padding:14px 16px;border-bottom:1px solid var(--color-border-tertiary);transition:background .15s}
+.equip-item:last-child{border-bottom:none}
+.equip-item:hover{background:var(--color-background-secondary)}
+.equip-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.equip-item-name{font-size:13px;font-weight:500}
+.equip-item-avail{font-size:11px;color:var(--color-text-tertiary);background:var(--color-background-secondary);padding:2px 9px;border-radius:20px}
+.qty-chips{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.qty-chip{display:inline-flex;align-items:center;justify-content:center;padding:6px 14px;border:1px solid var(--color-border-primary);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);background:#fff;transition:all .15s;min-width:48px}
+.qty-chip:hover{border-color:var(--color-primary);color:var(--color-primary);background:#EBF3FD}
+.qty-chip.selected{border-color:var(--color-primary);background:var(--color-primary);color:#fff}
+.qty-chip.chip-other{padding:6px 12px}
+.qty-other-input{display:none;margin-top:8px;flex-direction:column;gap:4px}
+.qty-other-input.visible{display:flex}
+.qty-selected-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:var(--color-primary-light);color:var(--color-primary);border-radius:20px;font-size:11px;font-weight:600}
+
+/* ===== Notif dot styles ===== */
+.file-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:11px;color:var(--color-text-secondary);cursor:pointer}
+.file-chip:hover{background:var(--color-background-secondary)}
+</style>
+</head>
+<body>
+
+<!-- ============================= -->
+<!-- VIEW: LANDING PAGE            -->
+<!-- ============================= -->
+<div id="view-landing" class="wrap">
+  <div class="land">
+    <nav class="land-nav">
+      <div class="land-logo">
+        <div class="logo-icon">🏛</div>
+        <div><div class="logo-text">University of Antique</div><div class="logo-sub">Facility Management System</div></div>
+      </div>
+      <div class="nav-links">
+        <span class="nav-link">Features</span>
+        <span class="nav-link">Facilities</span>
+        <span class="nav-link">About</span>
+        <span class="nav-link">Contact</span>
+      </div>
+      <div class="nav-btns">
+        <button class="btn" onclick="showLogin()">Sign in</button>
+        <button class="btn btn-p" onclick="showLogin()">Book a Facility</button>
+      </div>
+    </nav>
+  </div>
+  <div class="hero">
+    <div class="hero-pill">✦ University of Antique — Official Portal</div>
+    <h1>Manage Facilities with Ease and Efficiency</h1>
+    <p>Book classrooms, gymnasiums, laboratories, and equipment. Streamline requests for students, faculty, staff, and organizational units.</p>
+    <div class="hero-btns">
+      <button class="btn btn-p" style="padding:10px 24px;font-size:14px" onclick="showLogin()">Get Started →</button>
+      <button class="btn" style="padding:10px 24px;font-size:14px">View Facilities</button>
+    </div>
+  </div>
+  <div class="feat-section">
+    <div class="sec-title">Everything You Need to Manage Campus Facilities</div>
+    <div class="sec-sub">A comprehensive platform for booking, monitoring, and managing university resources.</div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="feat-icon">📅</div><div class="feat-title">Online Booking</div><div class="feat-desc">Submit facility requests online with required documentation. Track approval status in real time.</div></div>
+      <div class="feat-card"><div class="feat-icon">🗂</div><div class="feat-title">Admin Dashboard</div><div class="feat-desc">Review, approve, or reject requests. Manage users, facilities, and equipment from one place.</div></div>
+      <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-title">Usage Reports</div><div class="feat-desc">Track facility utilization, booking trends, and damage incidents with detailed analytics.</div></div>
+      <div class="feat-card"><div class="feat-icon">🔧</div><div class="feat-title">Equipment Tracking</div><div class="feat-desc">Monitor tools and equipment inventory — availability, condition, and borrowing history.</div></div>
+      <div class="feat-card"><div class="feat-icon">🔔</div><div class="feat-title">Notifications</div><div class="feat-desc">Automated notifications for booking updates, approvals, and upcoming scheduled events.</div></div>
+      <div class="feat-card"><div class="feat-icon">👥</div><div class="feat-title">Multi-Role Access</div><div class="feat-desc">Supports students, faculty, staff, and organizational units with role-based permissions.</div></div>
+    </div>
+  </div>
+  <div class="stats-band">
+    <div class="stats-band-grid">
+      <div><div class="sb-num">12+</div><div class="sb-lbl">Facilities</div></div>
+      <div><div class="sb-num">3,145</div><div class="sb-lbl">Registered Users</div></div>
+      <div><div class="sb-num">248</div><div class="sb-lbl">Bookings This Year</div></div>
+      <div><div class="sb-num">98%</div><div class="sb-lbl">Approval Rate</div></div>
+    </div>
+  </div>
+  <div class="fac-section">
+    <div class="sec-title">Available Facilities</div>
+    <div class="sec-sub">Browse campus venues available for booking by students, faculty, and organizations.</div>
+    <div class="fac-grid6">
+      <div class="fac-card-land"><div class="fac-ico">🏋️</div><div><div class="fac-name-land">Gymnasium</div><div class="fac-desc-land">Indoor sports, events, and assemblies. Capacity: 800 pax.</div></div></div>
+      <div class="fac-card-land"><div class="fac-ico">🎭</div><div><div class="fac-name-land">Audio-Visual Hall</div><div class="fac-desc-land">Seminars, screenings, and presentations. Capacity: 200 pax.</div></div></div>
+      <div class="fac-card-land"><div class="fac-ico">🔬</div><div><div class="fac-name-land">Science Laboratories</div><div class="fac-desc-land">Chemistry, Biology, and Physics labs. 40 pax each.</div></div></div>
+      <div class="fac-card-land"><div class="fac-ico">🤝</div><div><div class="fac-name-land">Conference Rooms</div><div class="fac-desc-land">Small meetings and discussions. Capacity: 20–30 pax.</div></div></div>
+      <div class="fac-card-land"><div class="fac-ico">🏸</div><div><div class="fac-name-land">Sports Courts</div><div class="fac-desc-land">Basketball and volleyball courts. Open use.</div></div></div>
+      <div class="fac-card-land"><div class="fac-ico">📚</div><div><div class="fac-name-land">Library &amp; Reading Rooms</div><div class="fac-desc-land">Study spaces with 6 private rooms. Capacity: 200 pax.</div></div></div>
+    </div>
+  </div>
+  <div class="land-footer">© 2026 University of Antique — Facility Management System · All rights reserved</div>
+</div>
+
+<!-- ============================= -->
+<!-- VIEW: LOGIN                   -->
+<!-- ============================= -->
+<div id="view-login" style="display:none">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <div class="logo-icon">🏛</div>
+        <div><div style="font-size:14px;font-weight:600">University of Antique</div><div style="font-size:12px;color:var(--color-text-secondary)">Facility Management System</div></div>
+      </div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:5px">Sign in</div>
+      <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:18px">Select your role and enter your UA credentials.</div>
+      <div class="role-toggle" id="role-toggle">
+        <div class="role-btn active" id="role-btn-admin" onclick="selectRole('admin')">🛡 Admin</div>
+        <div class="role-btn" id="role-btn-user" onclick="selectRole('user')">🏢 Organizational Unit</div>
+      </div>
+      <div id="role-hint-admin" style="background:#EBF3FD;border-radius:var(--border-radius-md);padding:9px 13px;font-size:12px;color:var(--color-primary);margin-bottom:14px">
+        Signing in as <strong>System Administrator</strong> — you will be directed to the Admin Dashboard.
+      </div>
+      <div id="role-hint-user" style="background:var(--color-success-bg);border-radius:var(--border-radius-md);padding:9px 13px;font-size:12px;color:var(--color-success);margin-bottom:14px;display:none">
+        Signing in as <strong>Organizational Unit</strong> — you will be directed to the OU Portal.
+      </div>
+      <div id="login-error" class="login-error">Invalid credentials. Please try again.</div>
+      <div class="form-group-login"><label class="form-label-login">Email</label><input class="form-control-login" id="login-email" placeholder="you@ua.edu.ph"/></div>
+      <div class="form-group-login"><label class="form-label-login">Password</label><input class="form-control-login" id="login-password" type="password" placeholder="••••••••"/></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-size:12px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" style="accent-color:var(--color-primary)"/> Remember me</label>
+        <span style="color:var(--color-primary);cursor:pointer">Forgot password?</span>
+      </div>
+      <button class="btn btn-p" style="width:100%;justify-content:center;padding:10px;font-size:13px" onclick="handleLogin()">Sign in</button>
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--color-text-secondary)">Don't have an account? <span style="color:var(--color-primary);cursor:pointer">Request access</span></div>
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--color-border-tertiary);text-align:center">
+        <button class="btn" style="font-size:12px" onclick="showLanding()">← Back to Home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================= -->
+<!-- VIEW: ADMIN APP               -->
+<!-- ============================= -->
+<div id="view-admin" style="display:none">
+<div class="admin-app">
+<aside class="admin-sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#fff" stroke-width="1.5" fill="none"/><path d="M9 22V12h6v10" stroke="#fff" stroke-width="1.5"/></svg>
+    </div>
+    <div class="logo-title">University of Antique</div>
+    <div class="logo-sub2">Facility Management System</div>
+  </div>
+  <div class="admin-nav-section" style="flex:1;overflow-y:auto">
+    <div class="admin-nav-label">Main</div>
+    <div class="admin-nav-item active" onclick="showAdminPage('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="admin-nav-item" onclick="showAdminPage('bookings',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M13 2h-1V1h-1v1H5V1H4v1H3a1 1 0 00-1 1v11a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1zm0 12H3V6h10v8zm0-9H3V3h1v1h1V3h6v1h1V3h1v2z"/></svg>
+      Bookings
+    </div>
+    <div class="admin-nav-item" onclick="showAdminPage('facilities',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M1 14V6l6-5 6 5v8H9V9H7v5H1zm2-1h3V9h4v4h3V6.5L8 2.2 3 6.5V13z"/></svg>
+      Facility Management
+    </div>
+    <div class="admin-nav-item" onclick="showAdminPage('equipment',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M14.5 2.5l-1-1a.5.5 0 00-.7 0L11 3.3 12.7 5l1.8-1.8a.5.5 0 000-.7zM10 4.3L1.5 12.8a.5.5 0 000 .7l1 1a.5.5 0 00.7 0L11.7 6 10 4.3zM1 15v-2l1.5 1.5L1 15z"/></svg>
+      Tools &amp; Equipment
+    </div>
+    <div class="admin-nav-item" onclick="showAdminPage('reports',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M12 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V2a1 1 0 00-1-1zm-1 11H5v-1h6v1zm0-3H5v-1h6v1zm0-3H5V5h6v1z"/></svg>
+      Damage Reports
+    </div>
+    <div class="admin-nav-label">Settings</div>
+    <div class="admin-nav-item" onclick="showAdminPage('users',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg>
+      Users
+    </div>
+    <div class="admin-nav-item" onclick="showAdminPage('settings',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 5a3 3 0 100 6A3 3 0 008 5zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/></svg>
+      Settings
+    </div>
+  </div>
+  <div style="padding:14px 18px;border-top:1px solid var(--color-border-tertiary)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="admin-avatar">AD</div>
+      <div><div style="font-size:12px;font-weight:600">Admin User</div><div style="font-size:10px;color:var(--color-text-tertiary)">System Administrator</div></div>
+    </div>
+    <button class="btn" style="width:100%;justify-content:center;margin-top:10px;font-size:12px" onclick="showLanding()">← Sign Out</button>
+  </div>
+</aside>
+
+<div class="admin-main">
+  <div class="admin-topbar">
+    <div class="topbar-title" id="admin-topbar-title">Dashboard</div>
+    <div class="topbar-right">
+      <div style="position:relative;cursor:pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#EF4444;border:1.5px solid #fff"></div>
+      </div>
+      <div class="admin-avatar">AD</div>
+    </div>
+  </div>
+
+  <div class="admin-content">
+
+  <!-- DASHBOARD -->
+  <div class="admin-page active" id="admin-page-dashboard">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Total Bookings</div><div class="stat-value" style="color:var(--color-primary)">248</div><div class="stat-sub"><span class="stat-dot" style="background:var(--color-success)"></span>+12 this week</div></div>
+      <div class="stat-card"><div class="stat-label">Available Facilities</div><div class="stat-value" style="color:var(--color-success)">18</div><div class="stat-sub"><span class="stat-dot" style="background:var(--color-warning)"></span>4 under maintenance</div></div>
+      <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value" style="color:var(--color-purple)">1,042</div><div class="stat-sub"><span class="stat-dot" style="background:var(--color-primary)"></span>Students, Faculty, Staff</div></div>
+      <div class="stat-card"><div class="stat-label">Pending Requests</div><div class="stat-value" style="color:var(--color-warning)">31</div><div class="stat-sub"><span class="stat-dot" style="background:var(--color-success)"></span>19 approved today</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px">
+      <div class="stat-card" style="display:flex;align-items:center;gap:14px">
+        <div style="width:42px;height:42px;border-radius:10px;background:var(--color-success-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="1.5"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div>
+        <div><div class="stat-label">Approved Bookings</div><div style="font-size:20px;font-weight:600;color:var(--color-success)">194</div></div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:center;gap:14px">
+        <div style="width:42px;height:42px;border-radius:10px;background:var(--color-warning-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-warning)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+        <div><div class="stat-label">Available Equipment</div><div style="font-size:20px;font-weight:600;color:var(--color-warning)">312</div></div>
+      </div>
+      <div class="stat-card" style="display:flex;align-items:center;gap:14px">
+        <div style="width:42px;height:42px;border-radius:10px;background:var(--color-danger-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+        <div><div class="stat-label">Damage Reports</div><div style="font-size:20px;font-weight:600;color:var(--color-danger)">7</div></div>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Recent Activities</div><span style="font-size:11px;color:var(--color-text-tertiary)">Today, May 10</span></div>
+        <div class="card-body">
+          <div class="activity-item"><div class="act-dot" style="background:var(--color-primary)"></div><div><div class="act-text">JPCS submitted a booking for <strong>Function Hall</strong></div><div class="act-time">9:15 AM</div></div></div>
+          <div class="activity-item"><div class="act-dot" style="background:var(--color-success)"></div><div><div class="act-text">Booking #BK-241 <strong>approved</strong> — Gymnasium</div><div class="act-time">8:50 AM</div></div></div>
+          <div class="activity-item"><div class="act-dot" style="background:var(--color-danger)"></div><div><div class="act-text">Damage report submitted — <strong>Projector #3</strong> malfunction</div><div class="act-time">8:30 AM</div></div></div>
+          <div class="activity-item"><div class="act-dot" style="background:var(--color-warning)"></div><div><div class="act-text">New user registered: <strong>Maria Santos</strong> (Faculty)</div><div class="act-time">8:10 AM</div></div></div>
+          <div class="activity-item"><div class="act-dot" style="background:var(--color-primary)"></div><div><div class="act-text">SSC submitted request for <strong>AVR Lab</strong></div><div class="act-time">7:55 AM</div></div></div>
+          <div class="activity-item"><div class="act-dot" style="background:var(--color-purple)"></div><div><div class="act-text">Facility maintenance completed — <strong>Soccer Field</strong></div><div class="act-time">7:40 AM</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Activity Calendar</div><div class="cal-nav"><div class="cal-btn" onclick="calNav(-1)">‹</div><div class="cal-btn" onclick="calNav(1)">›</div></div></div>
+        <div class="cal-grid">
+          <div class="cal-header"><div class="cal-month" id="cal-month-label"></div></div>
+          <div class="cal-days" id="cal-days">
+            <div class="cal-day-label">Su</div><div class="cal-day-label">Mo</div><div class="cal-day-label">Tu</div>
+            <div class="cal-day-label">We</div><div class="cal-day-label">Th</div><div class="cal-day-label">Fr</div><div class="cal-day-label">Sa</div>
+          </div>
+          <div style="margin-top:10px" id="cal-events-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><div class="card-title">Recent Booking Requests</div><button class="action-btn primary" onclick="showAdminPage('bookings',document.querySelectorAll('.admin-nav-item')[1])">View All</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Requester</th><th>Facility</th><th>Date</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><strong>BK-248</strong></td><td>JPCS</td><td>Function Hall</td><td>Apr 28</td><td>8AM–5PM</td><td><span class="badge badge-amber">Pending</span></td><td><button class="action-btn primary">Review</button></td></tr>
+            <tr><td><strong>BK-247</strong></td><td>SSC</td><td>Gymnasium</td><td>Apr 26</td><td>1PM–6PM</td><td><span class="badge badge-green">Approved</span></td><td><button class="action-btn">View</button></td></tr>
+            <tr><td><strong>BK-246</strong></td><td>Faculty – CBA</td><td>Conference Room A</td><td>Apr 25</td><td>9AM–12PM</td><td><span class="badge badge-green">Approved</span></td><td><button class="action-btn">View</button></td></tr>
+            <tr><td><strong>BK-245</strong></td><td>ICSC-UA</td><td>AVR Lab</td><td>Apr 24</td><td>2PM–5PM</td><td><span class="badge badge-red">Rejected</span></td><td><button class="action-btn">View</button></td></tr>
+            <tr><td><strong>BK-244</strong></td><td>JPCS</td><td>Science Lab 1</td><td>Apr 23</td><td>All day</td><td><span class="badge badge-green">Approved</span></td><td><button class="action-btn">View</button></td></tr>
+          </tbody>
+        </table> 
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div class="admin-page" id="admin-page-bookings">
+    <div class="page-header"><div class="page-title">Bookings</div><div style="display:flex;gap:8px"><div class="search-bar" style="margin-bottom:0"><input placeholder="Search bookings..."/></div><select style="padding:8px 12px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:12px;background:#fff;color:var(--color-text-primary)"><option>All Status</option><option>Pending</option><option>Approved</option><option>Rejected</option></select></div></div>
+    <div class="filter-tabs"><div class="filter-tab active" onclick="setFacFilter('all',this)">All</div><div class="filter-tab" onclick="setFacFilter('pending',this)">Pending</div><div class="filter-tab" onclick="setFacFilter('approved',this)">Approved</div><div class="filter-tab" onclick="setFacFilter('rejected',this)">Rejected</div></div>
+    <div class="equip-table-wrap">
+      <table>
+        <thead><tr><th>Booking ID</th><th>Requester</th><th>Type</th><th>Facility</th><th>Date</th><th>Time</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><strong>BK-248</strong></td><td>JPCS</td><td>Org Unit</td><td>Function Hall</td><td>Apr 28</td><td>8AM–5PM</td><td>Apr 23</td><td><span class="badge badge-amber">Pending</span></td><td><div style="display:flex;gap:4px"><button class="action-btn primary">Approve</button><button class="action-btn">Reject</button></div></td></tr>
+          <tr><td><strong>BK-247</strong></td><td>SSC</td><td>Org Unit</td><td>Gymnasium</td><td>Apr 26</td><td>1PM–6PM</td><td>Apr 20</td><td><span class="badge badge-green">Approved</span></td><td><button class="action-btn">View</button></td></tr>
+          <tr><td><strong>BK-246</strong></td><td>Faculty – CBA</td><td>Faculty</td><td>Conference Room A</td><td>Apr 25</td><td>9AM–12PM</td><td>Apr 18</td><td><span class="badge badge-green">Approved</span></td><td><button class="action-btn">View</button></td></tr>
+          <tr><td><strong>BK-245</strong></td><td>ICSC-UA</td><td>Org Unit</td><td>AVR Lab</td><td>Apr 24</td><td>2PM–5PM</td><td>Apr 17</td><td><span class="badge badge-red">Rejected</span></td><td><button class="action-btn">View</button></td></tr>
+          <tr><td><strong>BK-244</strong></td><td>JPCS</td><td>Org Unit</td><td>Science Lab 1</td><td>Apr 23</td><td>All day</td><td>Apr 15</td><td><span class="badge badge-green">Approved</span></td><td><button class="action-btn">View</button></td></tr>
+          <tr><td><strong>BK-243</strong></td><td>Dr. Reyes</td><td>Faculty</td><td>Gymnasium</td><td>Apr 22</td><td>8AM–12PM</td><td>Apr 14</td><td><span class="badge badge-amber">Pending</span></td><td><div style="display:flex;gap:4px"><button class="action-btn primary">Approve</button><button class="action-btn">Reject</button></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FACILITY MANAGEMENT -->
+  <div class="admin-page" id="admin-page-facilities">
+    <div class="page-header"><div class="page-title">Facility Management</div><button class="btn-primary">+ Add Facility</button></div>
+    <div class="filter-tabs"><div class="filter-tab active" onclick="setFacFilter('all',this)">All</div><div class="filter-tab" onclick="setFacFilter('available',this)">Available</div><div class="filter-tab" onclick="setFacFilter('maintenance',this)">Maintenance</div></div>
+    <div class="facility-grid">
+      <div class="fac-card"><div class="fac-img gym">🏋️</div><div class="fac-body"><div class="fac-name">Gymnasium</div><div class="fac-cap">Capacity: 800 pax</div><div class="fac-footer"><span class="badge badge-green">Available</span><div style="display:flex;gap:4px"><button class="action-btn primary" onclick="openModal('facility-details')">Details</button><button class="action-btn">Edit</button></div></div></div></div>
+      <div class="fac-card"><div class="fac-img audi">🎭</div><div class="fac-body"><div class="fac-name">Audio-Visual Hall</div><div class="fac-cap">Capacity: 200 pax</div><div class="fac-footer"><span class="badge badge-green">Available</span><div style="display:flex;gap:4px"><button class="action-btn primary">Details</button><button class="action-btn">Edit</button></div></div></div></div>
+      <div class="fac-card"><div class="fac-img lab">🔬</div><div class="fac-body"><div class="fac-name">Science Lab 1</div><div class="fac-cap">Capacity: 40 pax</div><div class="fac-footer"><span class="badge badge-green">Available</span><div style="display:flex;gap:4px"><button class="action-btn primary">Details</button><button class="action-btn">Edit</button></div></div></div></div>
+      <div class="fac-card"><div class="fac-img conf">🤝</div><div class="fac-body"><div class="fac-name">Conference Room A</div><div class="fac-cap">Capacity: 20 pax</div><div class="fac-footer"><span class="badge badge-amber">Occupied</span><div style="display:flex;gap:4px"><button class="action-btn primary">Details</button><button class="action-btn">Edit</button></div></div></div></div>
+      <div class="fac-card"><div class="fac-img field">🏸</div><div class="fac-body"><div class="fac-name">Sports Court</div><div class="fac-cap">Outdoor · Multi-sport</div><div class="fac-footer"><span class="badge badge-green">Available</span><div style="display:flex;gap:4px"><button class="action-btn primary">Details</button><button class="action-btn">Edit</button></div></div></div></div>
+      <div class="fac-card"><div class="fac-img lib">📚</div><div class="fac-body"><div class="fac-name">Library / Reading Room</div><div class="fac-cap">Capacity: 200 pax</div><div class="fac-footer"><span class="badge badge-green">Available</span><div style="display:flex;gap:4px"><button class="action-btn primary">Details</button><button class="action-btn">Edit</button></div></div></div></div>
+    </div>
+  </div>
+
+  <!-- EQUIPMENT -->
+  <div class="admin-page" id="admin-page-equipment">
+    <div class="page-header"><div class="page-title">Tools &amp; Equipment</div><button class="btn-primary">+ Add Equipment</button></div>
+    <div class="search-bar"><input placeholder="Search equipment..."/><select><option>All Categories</option><option>Furniture</option><option>AV Equipment</option><option>Electrical</option></select></div>
+    <div class="equip-table-wrap">
+      <table>
+        <thead><tr><th>Equipment</th><th>Category</th><th>Total</th><th>Available</th><th>In Use</th><th>For Repair</th><th>Availability</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Monobloc Chairs</strong></td><td>Furniture</td><td>200</td><td>185</td><td>15</td><td>0</td><td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:93%;background:var(--color-success)"></div></div><span style="font-size:11px">93%</span></div></td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>Folding Tables</strong></td><td>Furniture</td><td>30</td><td>26</td><td>3</td><td style="color:var(--color-danger)">1</td><td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:87%;background:var(--color-success)"></div></div><span style="font-size:11px">87%</span></div></td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>Projectors</strong></td><td>AV Equipment</td><td>10</td><td>7</td><td>2</td><td style="color:var(--color-danger)">1</td><td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:70%;background:var(--color-warning)"></div></div><span style="font-size:11px">70%</span></div></td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>Sound System</strong></td><td>AV Equipment</td><td>4</td><td>3</td><td>1</td><td>0</td><td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:75%;background:var(--color-warning)"></div></div><span style="font-size:11px">75%</span></div></td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>Microphones</strong></td><td>Audio</td><td>20</td><td>16</td><td>4</td><td>0</td><td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:80%;background:var(--color-success)"></div></div><span style="font-size:11px">80%</span></div></td><td><button class="action-btn">Edit</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="admin-page" id="admin-page-reports">
+    <div class="page-header"><div class="page-title">Damage Reports</div><button class="btn-primary" onclick="openModal('report-modal')">+ File Report</button></div>
+    <div class="report-grid">
+      <div class="report-stat"><div class="stat-label">Total Reports</div><div class="stat-value" style="color:var(--color-danger)">7</div></div>
+      <div class="report-stat"><div class="stat-label">Open / Unresolved</div><div class="stat-value" style="color:var(--color-warning)">3</div></div>
+      <div class="report-stat"><div class="stat-label">Resolved This Month</div><div class="stat-value" style="color:var(--color-success)">4</div></div>
+      <div class="report-stat"><div class="stat-label">High Priority</div><div class="stat-value" style="color:var(--color-danger)">2</div></div>
+    </div>
+    <div class="equip-table-wrap">
+      <table>
+        <thead><tr><th>Report ID</th><th>Item</th><th>Location</th><th>Reported By</th><th>Date</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><strong>DR-007</strong></td><td>Projector #3</td><td>AVR Lab</td><td>Faculty</td><td>Apr 23</td><td><span class="badge badge-red">High</span></td><td><span class="badge badge-amber">Open</span></td><td><button class="action-btn primary">Resolve</button></td></tr>
+          <tr><td><strong>DR-006</strong></td><td>Sound System</td><td>Gymnasium</td><td>SSC</td><td>Apr 18</td><td><span class="badge badge-amber">Medium</span></td><td><span class="badge badge-amber">Open</span></td><td><button class="action-btn primary">Resolve</button></td></tr>
+          <tr><td><strong>DR-005</strong></td><td>Chair set (12 pcs)</td><td>Conference Rm A</td><td>Admin</td><td>Apr 10</td><td><span class="badge badge-gray">Low</span></td><td><span class="badge badge-green">Resolved</span></td><td><button class="action-btn">View</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div class="admin-page" id="admin-page-users">
+    <div class="page-header"><div class="page-title">Users</div><button class="btn-primary">+ Add User</button></div>
+    <div class="search-bar"><input placeholder="Search users..."/><select><option>All Types</option><option>Student</option><option>Faculty</option><option>Staff</option><option>Org Unit</option></select></div>
+    <div class="equip-table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Type</th><th>Status</th><th>Bookings</th><th>Registered</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ICSC-UA</strong></td><td>icsc@ua.edu.ph</td><td><span class="badge badge-blue">Org Unit</span></td><td><span class="badge badge-green">Active</span></td><td>7</td><td>Aug 2024</td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>SSC</strong></td><td>ssc@ua.edu.ph</td><td><span class="badge badge-blue">Org Unit</span></td><td><span class="badge badge-green">Active</span></td><td>12</td><td>Jun 2024</td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>Maria Santos</strong></td><td>m.santos@ua.edu.ph</td><td><span class="badge badge-purple">Faculty</span></td><td><span class="badge badge-green">Active</span></td><td>3</td><td>Apr 2026</td><td><button class="action-btn">Edit</button></td></tr>
+          <tr><td><strong>Juan dela Cruz</strong></td><td>j.delacruz@ua.edu.ph</td><td><span class="badge badge-gray">Student</span></td><td><span class="badge badge-amber">Pending</span></td><td>0</td><td>Apr 2026</td><td><button class="action-btn">Edit</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="admin-page" id="admin-page-settings">
+    <div class="page-header"><div class="page-title">Settings</div><button class="btn-primary">Save Changes</button></div>
+    <div style="max-width:540px">
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:16px">System Settings</div>
+        <div class="form-group"><label class="form-label">System Name</label><input class="form-input" value="University of Antique — FMS"/></div>
+        <div class="form-group"><label class="form-label">Institution Email Domain</label><input class="form-input" value="@ua.edu.ph"/></div>
+        <div class="form-group"><label class="form-label">Default Booking Approval Window (days)</label><input class="form-input" value="3" type="number"/></div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div class="card-title" style="margin-bottom:16px">Notifications</div>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:13px">
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--color-primary)"/> Email notifications on new bookings</label>
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer"><input type="checkbox" checked style="accent-color:var(--color-primary)"/> Email notifications on damage reports</label>
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer"><input type="checkbox" style="accent-color:var(--color-primary)"/> SMS alerts for high-priority reports</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- admin-content -->
+</div><!-- admin-main -->
+</div><!-- admin-app -->
+</div><!-- view-admin -->
+
+<!-- ============================= -->
+<!-- VIEW: USER / OU PORTAL        -->
+<!-- ============================= -->
+<div id="view-user" style="display:none">
+<div class="user-app">
+  <aside class="user-sidebar">
+    <div class="user-logo">
+      <div class="logo-badge">University of Antique — FMS</div>
+      <div class="logo-name">ICSC-UA</div>
+      <div class="logo-role">Organizational Unit</div>
+    </div>
+    <nav class="user-nav">
+      <div class="user-nav-sec">Overview</div>
+      <div class="user-nav-item active" id="ni-dash" onclick="gotoPage('dashboard',this)"><span class="ni">🏠</span>Dashboard</div>
+      <div class="user-nav-item" id="ni-book" onclick="gotoPage('book',this)"><span class="ni">📋</span>Book a Facility</div>
+      <div class="user-nav-sec">Browse</div>
+      <div class="user-nav-item" id="ni-fac" onclick="gotoPage('facilities',this)"><span class="ni">🏢</span>Facilities</div>
+      <div class="user-nav-item" id="ni-equip" onclick="gotoPage('equipment',this)"><span class="ni">🔧</span>Tools &amp; Equipment</div>
+      <div class="user-nav-sec">My Account</div>
+      <div class="user-nav-item" id="ni-mybookings" onclick="gotoPage('mybookings',this)"><span class="ni">📄</span>My Bookings</div>
+      <div class="user-nav-item" id="ni-profile" onclick="gotoPage('profile',this)"><span class="ni">👤</span>Profile</div>
+    </nav>
+    <div style="padding:14px 16px;border-top:1px solid var(--color-border-tertiary)">
+      <button class="user-btn" style="width:100%;justify-content:center;font-size:12px" onclick="showLanding()">← Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="user-main">
+    <div class="user-topbar">
+      <div class="tb-title" id="tb-label">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="notif-icon">🔔<span class="ndot"></span></div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <div class="user-avatar">IC</div>
+          <div><div style="font-size:13px;font-weight:600">ICSC-UA</div><div style="font-size:11px;color:var(--color-text-secondary)">Org Unit</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="user-content">
+
+      <!-- DASHBOARD -->
+      <div class="user-page active" id="page-dashboard">
+        <div class="bc">Home / Dashboard</div>
+        <div class="ph">
+          <div><div class="pt">Welcome back, ICSC-UA!</div><div class="ps">Here's your facility usage overview.</div></div>
+          <button class="user-btn user-btn-p" onclick="gotoPage('book',document.getElementById('ni-book'))">+ New Booking</button>
+        </div>
+        <div class="sg">
+          <div class="sc"><div class="sl">My Bookings</div><div class="sn" style="color:var(--color-primary)">7</div></div>
+          <div class="sc"><div class="sl">Pending</div><div class="sn" style="color:var(--color-warning)">2</div></div>
+          <div class="sc"><div class="sl">Approved</div><div class="sn" style="color:var(--color-success)">4</div></div>
+          <div class="sc"><div class="sl">Rejected</div><div class="sn" style="color:var(--color-danger)">1</div></div>
+        </div>
+        <div class="g2">
+          <div class="user-card">
+            <div class="card-t">Recent booking activity</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)"><div><div style="font-size:13px;font-weight:500">Gymnasium</div><div style="font-size:11px;color:var(--color-text-secondary)">Apr 22 · 8AM–5PM</div></div><span class="badge bp">Pending</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)"><div><div style="font-size:13px;font-weight:500">AV Hall</div><div style="font-size:11px;color:var(--color-text-secondary)">Mar 15 · 1PM–5PM</div></div><span class="badge ba">Approved</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md)"><div><div style="font-size:13px;font-weight:500">Sports Court</div><div style="font-size:11px;color:var(--color-text-secondary)">Feb 28 · All day</div></div><span class="badge ba">Approved</span></div>
+            </div>
+          </div>
+          <div class="user-card">
+            <div class="card-t">Available now</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--color-border-tertiary)"><span>Audio-Visual Hall</span><span class="badge ba">Available</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--color-border-tertiary)"><span>Science Lab 1</span><span class="badge ba">Available</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--color-border-tertiary)"><span>Sports Court</span><span class="badge ba">Available</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--color-border-tertiary)"><span>Gymnasium</span><span class="badge bp">Occupied</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:7px 0"><span>Conference Room A</span><span class="badge bp">Occupied</span></div>
+            </div>
+            <button class="user-btn" style="width:100%;justify-content:center;margin-top:12px;font-size:12px" onclick="gotoPage('facilities',document.getElementById('ni-fac'))">View all facilities →</button>
+          </div>
+        </div>
+        <div class="user-card">
+          <div class="card-t">Announcements</div>
+          <div style="background:#EBF3FD;border-radius:var(--border-radius-md);padding:12px 15px;font-size:13px;color:var(--color-primary-dark);margin-bottom:9px">📢 Gymnasium is under scheduled maintenance Apr 28–29. Plan your events accordingly.</div>
+          <div style="background:var(--color-success-bg);border-radius:var(--border-radius-md);padding:12px 15px;font-size:13px;color:var(--color-success)">📢 New AVR projector installed in AV Hall. Now available for bookings starting May 1.</div>
+        </div>
+      </div>
+
+      <!-- FACILITIES -->
+      <div class="user-page" id="page-facilities">
+        <div class="bc">Home / <span>Facilities</span></div>
+        <div class="ph"><div class="pt">Facilities</div><div class="ps">Check availability before booking.</div></div>
+        <div class="g3">
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#EBF3FD">🏋️</div><div class="user-fac-body"><div class="fac-n">Gymnasium</div><div class="fac-d">800 pax · Multi-purpose</div><span class="badge bp">Occupied</span><div style="font-size:11px;color:var(--color-text-secondary);margin-top:5px">Free from 5PM today</div></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#ECFDF5">🎭</div><div class="user-fac-body"><div class="fac-n">Audio-Visual Hall</div><div class="fac-d">200 pax · Seminar</div><span class="badge ba">Available</span></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#FEF3C7">🔬</div><div class="user-fac-body"><div class="fac-n">Science Lab 1</div><div class="fac-d">40 pax · Chemistry</div><span class="badge ba">Available</span></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#FDE8EF">🤝</div><div class="user-fac-body"><div class="fac-n">Conference Room A</div><div class="fac-d">20 pax · Meetings</div><span class="badge bp">Occupied</span><div style="font-size:11px;color:var(--color-text-secondary);margin-top:5px">Free from 4PM today</div></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#EDE9FE">🏸</div><div class="user-fac-body"><div class="fac-n">Sports Court</div><div class="fac-d">Outdoor · Multi-sport</div><span class="badge ba">Available</span></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#FAECE7">📚</div><div class="user-fac-body"><div class="fac-n">Reading Room</div><div class="fac-d">60 pax · Study Space</div><span class="badge ba">Available</span></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#E4F9F0">🔬</div><div class="user-fac-body"><div class="fac-n">Science Lab 2</div><div class="fac-d">35 pax · Biology</div><span class="badge ba">Available</span></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#F1F5F9">🤝</div><div class="user-fac-body"><div class="fac-n">Conference Room B</div><div class="fac-d">15 pax · Meetings</div><span class="badge ba">Available</span></div></div>
+          <div class="user-fac-card"><div class="user-fac-img" style="background:#FEF3C7">🏛️</div><div class="user-fac-body"><div class="fac-n">Busalian Hall</div><div class="fac-d">300 pax · Assembly</div><span class="badge ba">Available</span></div></div>
+        </div>
+        <button class="user-btn user-btn-p" style="font-size:13px" onclick="gotoPage('book',document.getElementById('ni-book'))">+ Book a Facility</button>
+      </div>
+
+      <!-- EQUIPMENT -->
+      <div class="user-page" id="page-equipment">
+        <div class="bc">Home / <span>Tools &amp; Equipment</span></div>
+        <div class="ph"><div class="pt">Tools &amp; Equipment</div><div class="ps">View available equipment you may request when booking.</div></div>
+        <div class="user-card">
+          <table>
+            <thead><tr><th>Equipment</th><th>Category</th><th>Total</th><th>Available</th><th>In Use</th><th>For Repair</th><th>Availability</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Monobloc Chairs</strong></td><td>Furniture</td><td>200</td><td>185</td><td>15</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:93%"></div></div><span style="font-size:11px">185</span></div></td></tr>
+              <tr><td><strong>Folding Tables</strong></td><td>Furniture</td><td>30</td><td>26</td><td>3</td><td style="color:var(--color-danger)">1</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:87%"></div></div><span style="font-size:11px">26</span></div></td></tr>
+              <tr><td><strong>Electric Fans</strong></td><td>Electrical</td><td>20</td><td>17</td><td>3</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:85%"></div></div><span style="font-size:11px">17</span></div></td></tr>
+              <tr><td><strong>Podium / Rostrum</strong></td><td>Event Equip.</td><td>3</td><td>3</td><td>0</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:100%"></div></div><span style="font-size:11px">3</span></div></td></tr>
+              <tr><td><strong>Flag &amp; School Colors</strong></td><td>Ceremonial</td><td>5</td><td>5</td><td>0</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:100%"></div></div><span style="font-size:11px">5</span></div></td></tr>
+              <tr><td><strong>Sound System</strong></td><td>AV Equipment</td><td>4</td><td>3</td><td>1</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:75%"></div></div><span style="font-size:11px">3</span></div></td></tr>
+              <tr><td><strong>LED Wall</strong></td><td>AV Equipment</td><td>2</td><td>2</td><td>0</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:100%"></div></div><span style="font-size:11px">2</span></div></td></tr>
+              <tr><td><strong>Projectors</strong></td><td>AV Equipment</td><td>10</td><td>7</td><td>2</td><td style="color:var(--color-danger)">1</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:70%"></div></div><span style="font-size:11px">7</span></div></td></tr>
+              <tr><td><strong>Microphones</strong></td><td>Audio</td><td>20</td><td>16</td><td>4</td><td>0</td><td><div style="display:flex;align-items:center;gap:7px"><div class="eq-bar"><div class="eq-fill" style="width:80%"></div></div><span style="font-size:11px">16</span></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="background:var(--color-warning-bg);border-radius:var(--border-radius-md);padding:11px 15px;font-size:12px;color:var(--color-warning);margin-top:6px">⚠ Items marked in red are under repair and unavailable. Equipment quantities will be confirmed upon booking approval.</div>
+      </div>
+
+      <!-- MY BOOKINGS -->
+      <div class="user-page" id="page-mybookings">
+        <div class="bc">Home / <span>My Bookings</span></div>
+        <div class="ph"><div class="pt">My Bookings</div></div>
+        <div class="user-card">
+          <table>
+            <thead><tr><th>Booking ID</th><th>Facility</th><th>Date</th><th>Time</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><strong>B-0124</strong></td><td>Gymnasium</td><td>Apr 22</td><td>8AM–5PM</td><td>Apr 19</td><td><span class="badge bp">Pending</span></td><td><button class="user-btn user-btn-sm">View</button></td></tr>
+              <tr><td><strong>B-0110</strong></td><td>AV Hall</td><td>Mar 15</td><td>1PM–5PM</td><td>Mar 10</td><td><span class="badge ba">Approved</span></td><td><button class="user-btn user-btn-sm">View</button></td></tr>
+              <tr><td><strong>B-0098</strong></td><td>Sports Court</td><td>Feb 28</td><td>All day</td><td>Feb 20</td><td><span class="badge ba">Approved</span></td><td><button class="user-btn user-btn-sm">View</button></td></tr>
+              <tr><td><strong>B-0082</strong></td><td>Gymnasium</td><td>Jan 10</td><td>8AM–5PM</td><td>Jan 5</td><td><span class="badge br">Rejected</span></td><td><button class="user-btn user-btn-sm">View</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="user-page" id="page-profile">
+        <div class="bc">Home / <span>Profile</span></div>
+        <div class="pt" style="margin-bottom:18px">Profile</div>
+        <div class="g2">
+          <div class="user-card">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+              <div style="width:54px;height:54px;border-radius:50%;background:#EBF3FD;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:var(--color-primary)">IC</div>
+              <div><div style="font-size:15px;font-weight:600">ICSC-UA</div><div style="font-size:13px;color:var(--color-text-secondary)">Integrated Communication Students</div><span class="badge binfo" style="margin-top:5px">Organizational Unit</span></div>
+            </div>
+            <div class="user-form-group"><label class="user-form-label">Organization Name</label><input class="user-form-control" value="ICSC-UA"/></div>
+            <div class="user-form-group"><label class="user-form-label">Email Address</label><input class="user-form-control" value="icsc@ua.edu.ph"/></div>
+            <div class="user-form-group"><label class="user-form-label">Contact Number</label><input class="user-form-control" value="09XX-XXX-XXXX"/></div>
+            <button class="user-btn user-btn-p" style="font-size:12px">Save Changes</button>
+          </div>
+          <div class="user-card">
+            <div class="card-t">Account Info</div>
+            <div class="review-row"><span class="rl">Type</span><span class="rv">Organizational Unit</span></div>
+            <div class="review-row"><span class="rl">College</span><span class="rv">College of Communication</span></div>
+            <div class="review-row"><span class="rl">Adviser</span><span class="rv">Prof. R. Magno</span></div>
+            <div class="review-row"><span class="rl">Registered</span><span class="rv">Aug 12, 2024</span></div>
+            <div class="review-row"><span class="rl">Status</span><span class="rv"><span class="badge ba">Active</span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===========================
+           BOOK A FACILITY
+      =========================== -->
+      <div class="user-page" id="page-book">
+        <div class="bc">Home / <span onclick="gotoPage('book',document.getElementById('ni-book'))">Book a Facility</span></div>
+        <div class="ph"><div class="pt">Facilities Utilization Form</div><div class="ps">GSU-FM-011 · University of Antique, Sibalom, Antique</div></div>
+
+        <div class="step-nav" id="step-nav">
+          <div class="step active" id="st1"><div class="step-num">1</div>Request Info</div>
+          <div class="step" id="st2"><div class="step-num">2</div>Venue Selection</div>
+          <div class="step" id="st3"><div class="step-num">3</div>Equipment</div>
+          <div class="step" id="st4"><div class="step-num">4</div>Documents</div>
+          <div class="step" id="st5"><div class="step-num">5</div>Review &amp; Submit</div>
+        </div>
+
+        <!-- STEP 1: Basic Info -->
+        <div id="form-step1">
+          <div class="form-section">
+            <div class="fs-title">Basic Information · Control No. ___________</div>
+            <div class="user-form-row">
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Date of Request</label><input class="user-form-control" type="date" value="2025-04-21"/></div>
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Requester Contact Number</label><input class="user-form-control" placeholder="09XX-XXX-XXXX"/></div>
+            </div>
+            <div class="user-form-row" style="margin-top:13px">
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Requester Name</label><input class="user-form-control" value="ICSC-UA"/></div>
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Requester Type</label>
+                <select class="user-form-control"><option>Organizational Unit (OU)</option><option>Faculty</option><option>Staff</option><option>Student</option><option>External / Others</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="fs-title">Activity Details</div>
+            <div class="user-form-row">
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Date of Activity</label><input class="user-form-control" type="date"/></div>
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Time of Activity</label>
+                <div style="display:flex;gap:8px"><input class="user-form-control" type="time" style="flex:1"/><input class="user-form-control" type="time" style="flex:1"/></div>
+              </div>
+            </div>
+            <div class="user-form-group" style="margin-top:13px"><label class="user-form-label">Purpose / Activity Title</label><textarea class="user-form-control" rows="3" placeholder="e.g. Leadership Summit 2025 — General Assembly and Awarding Ceremony"></textarea></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="user-btn user-btn-p" onclick="goStep(2)">Next: Venue Selection →</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Venue Selection -->
+        <div id="form-step2" style="display:none">
+          <div class="form-section">
+            <div class="fs-title">Venues to be Utilized</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">Select one or more venues. Availability shown below.</div>
+            <div class="venue-grid" id="venue-grid">
+              <div class="venue-item" onclick="toggleVenue(this,'Busalian Hall')"><span style="font-size:15px">🏛️</span>Busalian Hall <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'Paghi-usa Hall')"><span style="font-size:15px">🏛️</span>Paghi-usa Hall <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'E-Hub')"><span style="font-size:15px">💻</span>E-Hub <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'Balay ni Juan')"><span style="font-size:15px">🏠</span>Balay ni Juan <span class="badge bp" style="margin-left:auto;font-size:10px">Occupied</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'ICT AVR')"><span style="font-size:15px">📺</span>ICT AVR <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'CEA AVR')"><span style="font-size:15px">📺</span>CEA AVR <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'CBA AVR')"><span style="font-size:15px">📺</span>CBA AVR <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'New AVR')"><span style="font-size:15px">📺</span>New AVR <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'Grand Stand')"><span style="font-size:15px">🏟️</span>Grand Stand <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'Covered Gym')"><span style="font-size:15px">🏋️</span>Covered Gym <span class="badge bp" style="margin-left:auto;font-size:10px">Occupied</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'Track Oval')"><span style="font-size:15px">🏃</span>Track Oval <span class="badge ba" style="margin-left:auto;font-size:10px">Free</span></div>
+              <div class="venue-item" onclick="toggleVenue(this,'Others')"><span style="font-size:15px">📍</span>Others (specify)</div>
+            </div>
+            <div id="others-field" style="display:none;margin-top:10px"><input class="user-form-control" placeholder="Please specify venue..."/></div>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <button class="user-btn" onclick="goStep(1)">← Back</button>
+            <button class="user-btn user-btn-p" onclick="goStep(3)">Next: Equipment →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Equipment — CHIP SELECTOR -->
+        <div id="form-step3" style="display:none">
+          <div class="form-section">
+            <div class="fs-title">Facility / Equipment to be Used — Select Quantity</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px">Select a preset quantity or choose "Others" to enter a custom amount. Leave unselected if not needed.</div>
+
+            <!-- Monobloc Chairs -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">🪑 Monobloc Chairs</span>
+                <span class="equip-item-avail">185 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'chairs','50')">50</button>
+                <button class="qty-chip" onclick="selectChip(this,'chairs','100')">100</button>
+                <button class="qty-chip" onclick="selectChip(this,'chairs','150')">150</button>
+                <button class="qty-chip chip-other" onclick="toggleOther(this,'chairs-other')">Others ✎</button>
+                <span class="qty-selected-badge" id="badge-chairs" style="display:none"></span>
+              </div>
+              <div class="qty-other-input" id="chairs-other">
+                <label class="user-form-label">Enter quantity (max 185):</label>
+                <input class="user-form-control" type="number" min="1" max="185" placeholder="e.g. 75" oninput="setOtherVal(this,'chairs')" style="max-width:200px"/>
+              </div>
+            </div>
+
+            <!-- Folding Tables -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">🪵 Folding Tables</span>
+                <span class="equip-item-avail">26 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'tables','5')">5</button>
+                <button class="qty-chip" onclick="selectChip(this,'tables','10')">10</button>
+                <button class="qty-chip" onclick="selectChip(this,'tables','20')">20</button>
+                <button class="qty-chip chip-other" onclick="toggleOther(this,'tables-other')">Others ✎</button>
+                <span class="qty-selected-badge" id="badge-tables" style="display:none"></span>
+              </div>
+              <div class="qty-other-input" id="tables-other">
+                <label class="user-form-label">Enter quantity (max 26):</label>
+                <input class="user-form-control" type="number" min="1" max="26" placeholder="e.g. 15" oninput="setOtherVal(this,'tables')" style="max-width:200px"/>
+              </div>
+            </div>
+
+            <!-- Electric Fans -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">💨 Electric Fans</span>
+                <span class="equip-item-avail">17 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'fans','5')">5</button>
+                <button class="qty-chip" onclick="selectChip(this,'fans','10')">10</button>
+                <button class="qty-chip" onclick="selectChip(this,'fans','15')">15</button>
+                <button class="qty-chip chip-other" onclick="toggleOther(this,'fans-other')">Others ✎</button>
+                <span class="qty-selected-badge" id="badge-fans" style="display:none"></span>
+              </div>
+              <div class="qty-other-input" id="fans-other">
+                <label class="user-form-label">Enter quantity (max 17):</label>
+                <input class="user-form-control" type="number" min="1" max="17" placeholder="e.g. 8" oninput="setOtherVal(this,'fans')" style="max-width:200px"/>
+              </div>
+            </div>
+
+            <!-- Podium -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">🎤 Podium / Rostrum</span>
+                <span class="equip-item-avail">3 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'podium','1')">1</button>
+                <button class="qty-chip" onclick="selectChip(this,'podium','2')">2</button>
+                <button class="qty-chip" onclick="selectChip(this,'podium','3')">3</button>
+                <span class="qty-selected-badge" id="badge-podium" style="display:none"></span>
+              </div>
+            </div>
+
+            <!-- Flag & School Colors -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">🚩 Flag &amp; School Colors</span>
+                <span class="equip-item-avail">5 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'flag','1')">1</button>
+                <button class="qty-chip" onclick="selectChip(this,'flag','3')">3</button>
+                <button class="qty-chip" onclick="selectChip(this,'flag','5')">5</button>
+                <span class="qty-selected-badge" id="badge-flag" style="display:none"></span>
+              </div>
+            </div>
+
+            <!-- Sound System -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">🔊 Sound System</span>
+                <span class="equip-item-avail">3 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'sound','1')">1</button>
+                <button class="qty-chip" onclick="selectChip(this,'sound','2')">2</button>
+                <button class="qty-chip" onclick="selectChip(this,'sound','3')">3</button>
+                <span class="qty-selected-badge" id="badge-sound" style="display:none"></span>
+              </div>
+            </div>
+
+            <!-- LED Wall -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">📺 LED Wall</span>
+                <span class="equip-item-avail">2 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'led','1')">1</button>
+                <button class="qty-chip" onclick="selectChip(this,'led','2')">2</button>
+                <span class="qty-selected-badge" id="badge-led" style="display:none"></span>
+              </div>
+            </div>
+
+            <!-- Projector -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">📽️ Projector</span>
+                <span class="equip-item-avail">7 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'proj','1')">1</button>
+                <button class="qty-chip" onclick="selectChip(this,'proj','2')">2</button>
+                <button class="qty-chip" onclick="selectChip(this,'proj','3')">3</button>
+                <button class="qty-chip chip-other" onclick="toggleOther(this,'proj-other')">Others ✎</button>
+                <span class="qty-selected-badge" id="badge-proj" style="display:none"></span>
+              </div>
+              <div class="qty-other-input" id="proj-other">
+                <label class="user-form-label">Enter quantity (max 7):</label>
+                <input class="user-form-control" type="number" min="1" max="7" placeholder="e.g. 4" oninput="setOtherVal(this,'proj')" style="max-width:200px"/>
+              </div>
+            </div>
+
+            <!-- Microphone -->
+            <div class="equip-item">
+              <div class="equip-item-header">
+                <span class="equip-item-name">🎙️ Microphone</span>
+                <span class="equip-item-avail">16 available</span>
+              </div>
+              <div class="qty-chips">
+                <button class="qty-chip" onclick="selectChip(this,'mic','2')">2</button>
+                <button class="qty-chip" onclick="selectChip(this,'mic','5')">5</button>
+                <button class="qty-chip" onclick="selectChip(this,'mic','10')">10</button>
+                <button class="qty-chip chip-other" onclick="toggleOther(this,'mic-other')">Others ✎</button>
+                <span class="qty-selected-badge" id="badge-mic" style="display:none"></span>
+              </div>
+              <div class="qty-other-input" id="mic-other">
+                <label class="user-form-label">Enter quantity (max 16):</label>
+                <input class="user-form-control" type="number" min="1" max="16" placeholder="e.g. 8" oninput="setOtherVal(this,'mic')" style="max-width:200px"/>
+              </div>
+            </div>
+
+          </div><!-- end form-section -->
+          <div style="display:flex;justify-content:space-between">
+            <button class="user-btn" onclick="goStep(2)">← Back</button>
+            <button class="user-btn user-btn-p" onclick="goStep(4)">Next: Documents →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Documents -->
+        <div id="form-step4" style="display:none">
+          <div class="form-section">
+            <div class="fs-title">Upload Required Documents</div>
+            <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:16px;line-height:1.65">Please attach the following documents to support your facility request. All documents must be signed by the authorized signatory.</p>
+            <div class="user-form-group">
+              <label class="user-form-label">Letter of Intent (signed by Adviser / Head of Office) *</label>
+              <div class="upload-zone"><div style="font-size:22px;margin-bottom:7px">📄</div><div style="font-size:13px;color:var(--color-text-secondary)">Click to upload or drag &amp; drop</div><div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">PDF, DOCX, JPG · Max 10MB</div></div>
+            </div>
+            <div class="user-form-group">
+              <label class="user-form-label">Budget Proposal (for events requiring resources) *</label>
+              <div class="upload-zone"><div style="font-size:22px;margin-bottom:7px">📊</div><div style="font-size:13px;color:var(--color-text-secondary)">Click to upload or drag &amp; drop</div><div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">PDF, XLSX · Max 10MB</div></div>
+            </div>
+            <div class="user-form-group">
+              <label class="user-form-label">Program of Activities (optional but recommended)</label>
+              <div class="upload-zone"><div style="font-size:22px;margin-bottom:7px">📋</div><div style="font-size:13px;color:var(--color-text-secondary)">Click to upload or drag &amp; drop</div><div style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px">PDF, DOCX · Max 10MB</div></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <button class="user-btn" onclick="goStep(3)">← Back</button>
+            <button class="user-btn user-btn-p" onclick="goStep(5)">Next: Review &amp; Submit →</button>
+          </div>
+        </div>
+
+        <!-- STEP 5: Review -->
+        <div id="form-step5" style="display:none">
+          <div class="form-section">
+            <div class="fs-title">Requested By</div>
+            <div class="user-form-row">
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Name of Requisitioner</label><input class="user-form-control" value="ICSC-UA"/></div>
+              <div class="user-form-group" style="margin-bottom:0"><label class="user-form-label">Date and Time of Submission</label><input class="user-form-control" value="April 21, 2025 · 10:30 AM"/></div>
+            </div>
+            <div class="user-form-group" style="margin-top:13px"><label class="user-form-label">Signature of Requisitioner</label><div style="border:1px dashed var(--color-border-primary);border-radius:var(--border-radius-md);height:62px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--color-text-tertiary)">[ Signature will be applied on printed form ]</div></div>
+          </div>
+          <div class="form-section">
+            <div class="fs-title">Review Summary</div>
+            <div class="review-row"><span class="rl">Requester</span><span class="rv">ICSC-UA (Organizational Unit)</span></div>
+            <div class="review-row"><span class="rl">Date of Activity</span><span class="rv" id="rv-date">—</span></div>
+            <div class="review-row"><span class="rl">Time</span><span class="rv" id="rv-time">—</span></div>
+            <div class="review-row"><span class="rl">Purpose</span><span class="rv" id="rv-purpose">—</span></div>
+            <div class="review-row"><span class="rl">Venue(s)</span><span class="rv" id="rv-venues">None selected</span></div>
+            <div class="review-row"><span class="rl">Equipment</span><span class="rv" id="rv-equip">None requested</span></div>
+            <div class="review-row"><span class="rl">Documents</span><span class="rv">Letter of Intent, Budget Proposal</span></div>
+          </div>
+          <div style="background:var(--color-success-bg);border-radius:var(--border-radius-md);padding:12px 15px;font-size:13px;color:var(--color-success);margin-bottom:18px">✅ By submitting, you confirm that all information provided is accurate. The facility admin will review and respond within 3–5 working days.</div>
+          <div style="display:flex;justify-content:space-between">
+            <button class="user-btn" onclick="goStep(4)">← Back</button>
+            <button class="user-btn user-btn-p" style="padding:9px 22px" onclick="submitForm()">Submit Booking Request</button>
+          </div>
+        </div>
+
+        <!-- SUCCESS -->
+        <div id="form-success" style="display:none">
+          <div class="success-box">
+            <div style="font-size:44px;margin-bottom:14px">✅</div>
+            <div style="font-size:18px;font-weight:600;margin-bottom:8px">Booking request submitted!</div>
+            <div style="font-size:13px;color:var(--color-text-secondary);max-width:360px;margin:0 auto 22px;line-height:1.7">Your Facilities Utilization Form (GSU-FM-011) has been submitted to the admin for review. You will be notified once it is processed.</div>
+            <div style="display:inline-flex;padding:11px 22px;border-radius:var(--border-radius-lg);background:var(--color-background-secondary);font-size:13px;margin-bottom:22px">Booking Reference: <strong style="margin-left:8px;color:var(--color-primary)">B-0125</strong></div>
+            <div style="display:flex;gap:10px;justify-content:center">
+              <button class="user-btn" onclick="gotoPage('mybookings',document.getElementById('ni-mybookings'))">View My Bookings</button>
+              <button class="user-btn user-btn-p" onclick="resetForm()">Submit Another</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end page-book -->
+    </div><!-- user-content -->
+  </div><!-- user-main -->
+</div><!-- user-app -->
+</div><!-- view-user -->
+
+<!-- ADMIN MODALS -->
+<div class="modal-overlay" id="modal-facility-details" onclick="closeModalOutside(event,'facility-details')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Facility Details — Gymnasium</div><div class="modal-close" onclick="closeModal('facility-details')">×</div></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;font-size:13px">
+        <div><div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px">Capacity</div><div>800 pax</div></div>
+        <div><div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px">Status</div><span class="badge badge-green">Available</span></div>
+        <div><div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px">Type</div><div>Indoor Sports</div></div>
+        <div><div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px">Location</div><div>Main Campus, Bldg C</div></div>
+      </div>
+      <div style="border-top:1px solid var(--color-border-tertiary);padding-top:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">Next Scheduled Booking</div>
+        <div style="background:var(--color-background-secondary);padding:12px;border-radius:var(--border-radius-md);font-size:13px">
+          <div style="font-weight:600">SSC Student Council</div>
+          <div style="color:var(--color-text-tertiary);font-size:12px;margin-top:2px">Apr 26, 1:00 PM – 6:00 PM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-report-modal" onclick="closeModalOutside(event,'report-modal')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">File Damage Report</div><div class="modal-close" onclick="closeModal('report-modal')">×</div></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Item / Equipment</label><input class="form-input" placeholder="e.g. Projector, Basketball"/></div>
+        <div class="form-group"><label class="form-label">Location</label><select class="form-input"><option>Function Hall</option><option>Gymnasium</option><option>AVR / Computer Lab</option><option>Conference Room</option><option>Library</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description of Damage</label><textarea class="form-input" rows="3" placeholder="Describe the damage in detail..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Priority</label><select class="form-input"><option>High</option><option>Medium</option><option>Low</option></select></div>
+        <div class="form-group"><label class="form-label">Reported By</label><input class="form-input" placeholder="Name / Dept."/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Upload Photo (optional)</label><input class="form-input" type="file" accept="image/*"/></div>
+    </div>
+    <div class="modal-footer"><button class="action-btn" onclick="closeModal('report-modal')">Cancel</button><button class="btn-primary">Submit Report</button></div>
+  </div>
+</div>
+
+<script>
+// ==============================
+// VIEW SWITCHING
+// ==============================
+let selectedRole='admin';
+function showLanding(){toggle('view-landing',true);toggle('view-login',false);toggle('view-admin',false);toggle('view-user',false)}
+function showLogin(){toggle('view-landing',false);toggle('view-login',true);toggle('view-admin',false);toggle('view-user',false)}
+function showAdmin(){toggle('view-landing',false);toggle('view-login',false);toggle('view-admin',true);toggle('view-user',false)}
+function showUser(){toggle('view-landing',false);toggle('view-login',false);toggle('view-admin',false);toggle('view-user',true)}
+function toggle(id,show){document.getElementById(id).style.display=show?'block':'none'}
+
+// ==============================
+// ROLE SELECTION
+// ==============================
+function selectRole(role){
+  selectedRole=role;
+  document.getElementById('role-btn-admin').classList.toggle('active',role==='admin');
+  document.getElementById('role-btn-user').classList.toggle('active',role==='user');
+  document.getElementById('role-hint-admin').style.display=role==='admin'?'block':'none';
+  document.getElementById('role-hint-user').style.display=role==='user'?'block':'none';
+  document.getElementById('login-error').style.display='none';
+}
+
+// ==============================
+// LOGIN
+// ==============================
+function handleLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-password').value.trim();
+  if(!email||!pass){document.getElementById('login-error').style.display='block';document.getElementById('login-error').textContent='Please enter your email and password.';return}
+  document.getElementById('login-error').style.display='none';
+  selectedRole==='admin'?showAdmin():showUser();
+}
+
+// ==============================
+// ADMIN PAGE NAV
+// ==============================
+const adminPages={dashboard:'Dashboard',bookings:'Bookings',facilities:'Facility Management',equipment:'Tools & Equipment',reports:'Damage Reports',users:'Users',settings:'Settings'};
+function showAdminPage(id,el){
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('admin-page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('admin-topbar-title').textContent=adminPages[id];
+}
+
+// ==============================
+// MODALS
+// ==============================
+function openModal(id){document.getElementById('modal-'+id).classList.add('show')}
+function closeModal(id){document.getElementById('modal-'+id).classList.remove('show')}
+function closeModalOutside(e,id){if(e.target===document.getElementById('modal-'+id))closeModal(id)}
+
+// ==============================
+// FACILITY FILTER TABS
+// ==============================
+function setFacFilter(f,el){document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+
+// ==============================
+// CALENDAR
+// ==============================
+const events={3:'Leadership Training (Gym)',5:'JPCS Seminar',8:'SSC Elections',12:'Faculty Assembly',15:'Sports Fest',19:'Research Forum',23:'Today – Booking Review',26:'SSC Event (Gym)',28:'JPCS Event (FH)',30:'Science Fair'};
+let calYear=2026,calMonth=3;
+function renderCal(){
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent=monthNames[calMonth]+' '+calYear;
+  const grid=document.getElementById('cal-days');
+  grid.querySelectorAll('.cal-day,.cal-other').forEach(d=>d.remove());
+  const first=new Date(calYear,calMonth,1).getDay();
+  const last=new Date(calYear,calMonth+1,0).getDate();
+  const prevLast=new Date(calYear,calMonth,0).getDate();
+  for(let i=0;i<first;i++){const d=document.createElement('div');d.className='cal-day other-month';d.textContent=prevLast-first+1+i;grid.appendChild(d)}
+  for(let d=1;d<=last;d++){const el=document.createElement('div');el.className='cal-day';el.textContent=d;if(calYear===2026&&calMonth===3&&d===26)el.classList.add('today');if(events[d])el.classList.add('has-event');grid.appendChild(el)}
+  const total=first+last;const rem=total%7===0?0:7-(total%7);
+  for(let i=1;i<=rem;i++){const d=document.createElement('div');d.className='cal-day other-month';d.textContent=i;grid.appendChild(d)}
+  const el=document.getElementById('cal-events-list');
+  el.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--color-text-tertiary);margin-bottom:7px;text-transform:uppercase;letter-spacing:.4px">Upcoming Events</div>';
+  Object.entries(events).filter(([d])=>parseInt(d)>=26).slice(0,4).forEach(([d,ev])=>{
+    const item=document.createElement('div');item.style.cssText='display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--color-border-tertiary)';
+    item.innerHTML=`<div style="background:#EBF3FD;color:var(--color-primary);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;min-width:28px;text-align:center">${d}</div><div style="font-size:12px;color:var(--color-text-secondary)">${ev}</div>`;
+    el.appendChild(item);
+  });
+}
+function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++}if(calMonth<0){calMonth=11;calYear--}renderCal()}
+renderCal();
+
+// ==============================
+// USER PORTAL PAGE NAV
+// ==============================
+function gotoPage(name,el){
+  document.querySelectorAll('.user-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.user-nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el)el.classList.add('active');
+  const t={dashboard:'Dashboard',book:'Book a Facility',facilities:'Facilities',equipment:'Tools & Equipment',mybookings:'My Bookings',profile:'Profile'};
+  document.getElementById('tb-label').textContent=t[name]||name;
+}
+
+// ==============================
+// BOOKING FORM — STEP LOGIC
+// ==============================
+let currentStep=1;
+const selectedVenues=new Set();
+// Equipment quantities stored here
+const eqQtys={chairs:0,tables:0,fans:0,podium:0,flag:0,sound:0,led:0,proj:0,mic:0};
+
+function goStep(n){
+  for(let i=1;i<=5;i++){
+    const s=document.getElementById('form-step'+i);
+    if(s)s.style.display=i===n?'block':'none';
+    const st=document.getElementById('st'+i);
+    if(st){st.className='step';if(i<n)st.classList.add('done');else if(i===n)st.classList.add('active')}
+  }
+  currentStep=n;
+  if(n===5)buildReview();
+}
+
+function toggleVenue(el,name){
+  if(name==='Others'){const f=document.getElementById('others-field');f.style.display=el.classList.contains('selected')?'none':'block'}
+  el.classList.toggle('selected');
+  if(el.classList.contains('selected'))selectedVenues.add(name);else selectedVenues.delete(name);
+}
+
+// ==============================
+// CHIP SELECTOR LOGIC
+// ==============================
+// chipGroups: key → array of chip button elements in that group
+function selectChip(chipEl, key, val){
+  // Get all chips in same equip-item
+  const item=chipEl.closest('.equip-item');
+  const chips=item.querySelectorAll('.qty-chip:not(.chip-other)');
+  const otherChip=item.querySelector('.chip-other');
+  const otherId=item.querySelector('.qty-other-input');
+
+  // Toggle: if clicking already-selected chip, deselect
+  if(chipEl.classList.contains('selected')){
+    chipEl.classList.remove('selected');
+    eqQtys[key]=0;
+    updateBadge(key,0);
+  } else {
+    // Deselect all chips in group
+    chips.forEach(c=>c.classList.remove('selected'));
+    // Select this chip
+    chipEl.classList.add('selected');
+    eqQtys[key]=parseInt(val);
+    updateBadge(key,parseInt(val));
+    // Hide others input if visible
+    if(otherId){otherId.classList.remove('visible');if(otherChip)otherChip.classList.remove('selected')}
+  }
+}
+
+function toggleOther(otherChipEl, otherId){
+  const input=document.getElementById(otherId);
+  const item=otherChipEl.closest('.equip-item');
+  const key=otherId.split('-')[0]; // e.g. 'chairs' from 'chairs-other'
+  const chips=item.querySelectorAll('.qty-chip:not(.chip-other)');
+
+  if(input.classList.contains('visible')){
+    // Close
+    input.classList.remove('visible');
+    otherChipEl.classList.remove('selected');
+  } else {
+    // Deselect regular chips
+    chips.forEach(c=>c.classList.remove('selected'));
+    // Open
+    input.classList.add('visible');
+    otherChipEl.classList.add('selected');
+    // Reset qty until user types
+    eqQtys[key]=0;
+    updateBadge(key,0);
+  }
+}
+
+function setOtherVal(input, key){
+  const v=parseInt(input.value)||0;
+  eqQtys[key]=v;
+  updateBadge(key,v);
+}
+
+function updateBadge(key,val){
+  const badge=document.getElementById('badge-'+key);
+  if(!badge)return;
+  if(val>0){badge.style.display='inline-flex';badge.textContent='✓ '+val+' selected'}
+  else{badge.style.display='none'}
+}
+
+function buildReview(){
+  document.getElementById('rv-venues').textContent=selectedVenues.size?[...selectedVenues].join(', '):'None selected';
+  const labels={chairs:'Monobloc Chairs',tables:'Folding Tables',fans:'Electric Fans',podium:'Podium',flag:'Flag & School Colors',sound:'Sound System',led:'LED Wall',proj:'Projector',mic:'Microphone'};
+  const eq=Object.entries(eqQtys).filter(([k,v])=>v>0).map(([k,v])=>labels[k]+' ×'+v).join(', ');
+  document.getElementById('rv-equip').textContent=eq||'None requested';
+}
+
+function submitForm(){
+  document.getElementById('form-step5').style.display='none';
+  document.getElementById('step-nav').style.display='none';
+  document.getElementById('form-success').style.display='block';
+}
+
+function resetForm(){
+  document.getElementById('form-success').style.display='none';
+  document.getElementById('step-nav').style.display='flex';
+  selectedVenues.clear();
+  Object.keys(eqQtys).forEach(k=>{
+    eqQtys[k]=0;
+    updateBadge(k,0);
+  });
+  // Deselect all chips
+  document.querySelectorAll('.qty-chip').forEach(c=>c.classList.remove('selected'));
+  // Hide all other inputs
+  document.querySelectorAll('.qty-other-input').forEach(o=>o.classList.remove('visible'));
+  document.querySelectorAll('.venue-item.selected').forEach(e=>e.classList.remove('selected'));
+  goStep(1);
+}
+</script>
+</body>
+</html>

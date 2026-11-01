@@ -1,0 +1,40 @@
+{
+  "name": "ua-fms-launcher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "UA Facility Management — desktop portal launcher (Electron, replaces pywebview)",
+  "main": "main.js",
+  "scripts": {
+    "start:admin": "cross-env FMS_PORTAL_ROLE=admin electron .",
+    "start:college": "cross-env FMS_PORTAL_ROLE=college_staff electron .",
+    "start:org": "cross-env FMS_PORTAL_ROLE=org_staff electron .",
+    "dist:admin": "node write-variant.js admin && electron-builder --win portable --config.productName=UA-FMS-Admin-Portal",
+    "dist:college": "node write-variant.js college && electron-builder --win portable --config.productName=UA-FMS-College-Portal",
+    "dist:org": "node write-variant.js org && electron-builder --win portable --config.productName=UA-FMS-Org-Portal",
+    "dist:all": "npm run dist:admin && npm run dist:college && npm run dist:org"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "ph.edu.ua.fms.launcher",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "gate.html",
+      "variant.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    },
+    "asar": true
+  }
+}

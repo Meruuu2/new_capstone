@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+cookies.txt
+/node_modules/
+/vendor/
+/**/node_modules/
+/**/vendor/
+/ua-fms-main.zip
+/.phpunit.result.cache
+/storage/logs/*
+!/storage/logs/.gitignore

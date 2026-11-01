@@ -1,0 +1,106 @@
+University of antique facility and equipment management system
+tech stack
+Xamp: any OS, apache/apache2,  MySQL, PHP
+frameworks: Laravel, VueJS
+
+Context: a system of GSU in UA that helps them to manage facility and equipment usage for colleges to book. The flow follows:
+(GSU holds most of the facilities other then the colleges avr and holds non college owned equipments)
+1.) College A --(sends form request)--> GSU(recieves)
+2.) GSU (check if a. booking other colleges avr/equipments or b. only borrowing the university facilities and equipments, c. if in some way equiments cant be covered by GSU, allow for GSU to book equipments themselves to other colleges) 
+
+--(a)--> GSU checks availability (if available accept, if not attempt reschedule, by some means the GSU can't then finally deny).
+--(b)--> GSU Checks availability, if there is data (if available accept, if not attempt reschedule, by some means the GSU can't, then finally deny), if no data --(forwards request to College B)--> College B (can confirm/deny/reschedule availability of their avr or equipment) --(response forwards to GSU)--> GSU (verifies) --(GSU final verdict forward to College A).
+--(c)--> GSU checks  if possible but needs to book the rest of the equipment from other colleges --(send request to college B)--> College B denies/accepts on
+
+3.) 
+
+
+2 Systems
+facility management system
+4 modules
+1.) admin module (highest level):
+> admin dashboard (monthly statistics)
+> admin notification manager > request verifications(accept/deny/rescheduled)
+> admin college contact system
+> admin live view of facility usage - 
+> account registration and full account control
+
+2.) per college office entities module (college staff)
+> login portal
+> facility usage request form (set date of usage should be two weeks prior, else denied)
+> staff notification (request verified from one of the admins (1/3 states)) || staff approval of their college resources (this sets the admin what to do on other colleges request)
+> staff request manager (forms drafts/pending requests/accepted or denied requests/cancelled requests)
+
+3.) organization accounts module
+> login portal
+> facility usage request form (set date of usage should be two weeks prior, else denied)
+> staff notification
+> staff request manager (forms drafts/pending requests/accepted or denied requests/cancelled requests)
+
+4.) user module (view only)
+> facility usage calendar
+> events tracker
+
+equipment management system
+
+DB
+- Entities
+Accounts per college, accounts for university org and gsu admins
+
+Requester account (no contact Num)
+Head of office account
+GSU person in-charge
+
+- Date Time
+Requested date, approved date and the duration
+
+- Locations
+All college AVR, Busalian Hall, Paghiusa Hall, Ehub, Balay ni Juan, Grandstand, Covered Gym, Others
+
+- Equipment
+Monobloc chair, Electric fan, table, rostrum,flag and school color, speaker and mic and led wall and number of borrowed equipment
+
+----------------------------------------------------
+
+Requests should be following the flow 
+Concurrency should available 
+All pillars of IA must be properly implemented through available resources/libraries (application layer obviously)
+
+--Forms--
+No null values 
+Forms must have a facility and equipments stated no null
+Allow buttons instead of manual typed inputs
+
+College Staff can book facilities and be verified by the gsu though given wity security the colleges staff name is included as a requester with his/her name will be hashed, and turn it into a qr code
+
+Orgs can do the same and will have the same security and non repudiation measures 
+
+Admins can book facilities by themselves with reasons if theyre paid with external entities or the university president requires so. Even tho this system uses first in first served, these two are exceptions
+
+
+!!Make sure the db is properly hooked to the app!!
+
+--Dashboards--
+Admins have;
+User Management - register (add a new college staff, org, or gsu admin), edit user and remove (not delete just revoke authority)
+
+Requests Management - see all college staff, orgs and them themselves admin requests 
+
+Sort them through pending (unconfirmed requests, relayed requests like college A books college B AVR or reassigned requests cuz admin has the power, they can change that if needed no abuse though its trusted that they'll handle when conflicts do happen), approved, disapproved and cancelled (either by the admin themselves or the requester).
+
+Printable forms and statistics 
+
+Allow to print the request forms and these statistics 
+Monthly statistics - use bar charts with the amount of requests under each facilities,
+Pie chart for the colleges, orgs or external entities with the percent and number of requests they made up for that month and a bar chart version 
+(Idk how to do this pls excuse me)
+Table of colleges, orgs and external entities 
+track of approved, disapproved and cancelled requests and is separated through months, can be looked by categories 
+
+Availability viewer and changer 
+
+Allows to view facility current state available/unavailable/maintenance (rare but may happen)
+
+Non avr facilities are automatically handled by admins thus they set availability by themselves (of course availability modified once theres a request approved, cancelled or under maintenance)
+
+College Staff

@@ -1,0 +1,13 @@
+# Security and Encryption Libraries
+cryptography>=42.0.0
+PyJWT>=2.8.1
+bcrypt>=4.1.2
+
+# Code Obfuscation and Protection
+pyarmor>=8.4.5
+
+# Packaging and Build Tools
+PyInstaller>=6.5.0
+
+# Additional Security Utilities
+requests>=2.31.0

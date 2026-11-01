@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UA FMS Org Portal</string>
+    <string name="gate_title">University of Antique</string>
+    <string name="gate_subtitle">Facility &amp; Equipment Management</string>
+    <string name="gate_role_badge">Organization Staff Portal</string>
+    <string name="gate_key_hint">Organization staff access key</string>
+    <string name="gate_continue">Continue</string>
+    <string name="gate_error">Access denied. Invalid key.</string>
+    <string name="gate_footer">Authorized personnel only</string>
+</resources>

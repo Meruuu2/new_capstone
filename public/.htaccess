@@ -1,0 +1,63 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Payment receipts are private and legacy public receipts must not be fetched directly.
+    RewriteRule ^storage/(?:payment_attachments|attachments)(?:/|$) - [F,L,NC]
+
+    # Never let uploaded files in public storage reach a PHP or other script handler.
+    RewriteRule ^storage/.*\.(?:php[0-9]?|phtml|phar)(?:/|$) - [F,L,NC]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Cache control headers for Cloudflare and static assets
+<IfModule mod_headers.c>
+    # Cache versioned assets (with hash) for 1 year - immutable for Cloudflare
+    <FilesMatch "\\.(js|css|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|webp)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+    
+    # Don't cache HTML files - short max-age for Cloudflare
+    <FilesMatch "\\.html?$">
+        Header set Cache-Control "public, max-age=3600, must-revalidate"
+    </FilesMatch>
+    
+    # Don't cache index.php
+    <FilesMatch "^index\\.php$">
+        Header set Cache-Control "public, max-age=0, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
+# Gzip compression for faster delivery
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+    AddOutputFilterByType DEFLATE font/woff font/woff2
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

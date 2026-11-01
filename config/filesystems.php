@@ -39,8 +39,17 @@ return [
         ],
 
         'payment_receipts' => [
-            'driver' => 'local',
-            'root' => env('PAYMENT_RECEIPTS_PATH', storage_path('app/private/payment-receipts')),
+            'driver' => env('PAYMENT_RECEIPTS_DRIVER', 'local'),
+            'root' => env('PAYMENT_RECEIPTS_DRIVER', 'local') === 's3'
+                ? env('PAYMENT_RECEIPTS_PREFIX', '')
+                : env('PAYMENT_RECEIPTS_PATH', storage_path('app/private/payment-receipts')),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'visibility' => 'private',
             'permissions' => [
                 'file' => ['private' => 0600],

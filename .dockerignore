@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+node_modules
+vendor
+legacy/
+dump/
+ua-fms-main/
+tests/
+public/hot
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*

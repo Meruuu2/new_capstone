@@ -58,6 +58,14 @@ Run `php artisan db:seed` only when intentionally setting up development/sample 
 
 The application uses Argon2id so passwords up to 94 characters are supported. `HASH_VERIFY=false` allows existing bcrypt password hashes to be verified and rehashed automatically at successful login; retain this setting until legacy accounts have migrated.
 
+## Deploy on Vercel
+
+The root `vercel.json` routes all public paths to the `ua-facility-management-system` container service. Its `Dockerfile` builds the Vite assets and runs the Laravel public front controller with PHP 8.3; `vercel-server.php` lets existing public files such as compiled assets be served directly. The archived desktop launchers are not web services and are excluded from the container build; there are no internal service bindings.
+
+Configure Vercel environment variables for the production `APP_KEY`, `APP_URL`, database, mail, and Reverb settings. Set the public `VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, and `VITE_REVERB_SCHEME` values in the build environment because Vite embeds them in the browser bundle. The container's local filesystem is ephemeral, so set `PAYMENT_RECEIPTS_DRIVER=s3` and configure `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, and, for compatible object stores, `AWS_ENDPOINT` and `AWS_USE_PATH_STYLE_ENDPOINT`. Optionally set `PAYMENT_RECEIPTS_PREFIX` to keep these objects under a bucket prefix. Keep the bucket private; receipt downloads remain authorization-checked through Laravel. The `PAYMENT_RECEIPTS_DRIVER` default remains `local` for development.
+
+Run database migrations as a separate deployment step against the configured production database. Vercel serves the HTTP application only; run the Laravel queue worker, scheduler, and Reverb server on suitable external services when those features are enabled. Verify the Vercel container service and its PHP/Dockerfile runtime are available for the project before production deployment.
+
 ## WebSocket broadcasting
 
 Laravel Reverb is the configured broadcaster, and Laravel Echo is included in the Vite bundle. Set unique `REVERB_APP_ID`, `REVERB_APP_KEY`, and `REVERB_APP_SECRET` values through the deployment secret store. Set `REVERB_HOST`, `REVERB_PORT`, and `REVERB_SCHEME` to the public WebSocket endpoint, and restrict `REVERB_ALLOWED_ORIGINS` to the deployment's hostnames (host only, comma-separated).

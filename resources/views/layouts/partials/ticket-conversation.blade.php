@@ -6,7 +6,7 @@
      $otherSide : who is on the other end, e.g. "GSU admins" or "John C. Amar" --}}
 @php
     $closed = $ticket->isClosed();
-    $closedLabel = $ticket->status === 'success' ? 'Completed' : 'Not completed';
+    $closedLabel = $ticket->status === 'success' ? 'Completed' : 'For replacement';
     $initialsOf = fn ($name) => collect(preg_split('/\s+/', trim((string) $name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: '?';
     $lastId = $ticket->messages->max('id') ?? 0;
 @endphp
@@ -27,8 +27,8 @@
         @foreach ($ticket->messages as $m)
             @php
                 $mine = $m->user_id === auth()->id();
-                $isAdmin = (bool) $m->user?->isAdmin();
-                $role = $isAdmin ? ($m->user->position ?: 'GSU Admin') : ($m->user?->college_name ?: 'College staff');
+                $isAdmin = $m->user?->isAdmin() || $m->user?->isMaintenanceStaff();
+                $role = $m->user?->isAdmin() ? ($m->user->position ?: 'GSU Admin') : ($m->user?->isMaintenanceStaff() ? 'Repair & Maintenance' : ($m->user?->college_name ?: 'College staff'));
             @endphp
             <li class="tcv-msg {{ $mine ? 'is-mine' : '' }} {{ $isAdmin ? 'is-admin' : 'is-college' }}" data-id="{{ $m->id }}">
                 <span class="tcv-avatar" aria-hidden="true">{{ $initialsOf($m->user?->name ?? '?') }}</span>
@@ -108,7 +108,7 @@
         form.hidden = true;
         document.getElementById('tcv-hint').hidden = true;
         document.getElementById('tcv-closed').hidden = false;
-        document.getElementById('tcv-closed-label').textContent = status === 'success' ? 'Completed' : 'Not completed';
+        document.getElementById('tcv-closed-label').textContent = status === 'success' ? 'Completed' : 'For replacement';
         const live = document.getElementById('tcv-live');
         live.classList.add('is-off');
         live.querySelector('span').textContent = 'Closed';

@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
           <li style="--dot:#F59E0B">Pending</li>
           <li style="--dot:#60A5FA">Ongoing</li>
           <li style="--dot:#34D399">Success</li>
-          <li style="--dot:#F87171">Failed</li>
+          <li style="--dot:#F87171">Replacement</li>
         </ul>
         <ul class="ua-track-legend" data-kind="BK" aria-label="Booking statuses" hidden>
           <li style="--dot:#60A5FA">Reserved</li>
@@ -257,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
       <p class="ua-tr-msg" id="ua-tr-msg"></p>
     </div>
     <div class="ua-tr-body">
+      <ol class="ua-tr-steps" id="ua-tr-steps" aria-label="Request progress" hidden></ol>
       <dl class="ua-tr-details" id="ua-tr-details"></dl>
       <div class="ua-tr-documents" id="ua-tr-documents" hidden>
         <a class="ua-tr-primary" id="ua-tr-pdf" href="#" hidden>Open approved application PDF</a>
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
         pending:  { title: 'Waiting to start', label: 'Pending', tone: '#B45309', bg: '#FFFBEB', icon: 'clock', msg: 'Your repair is queued and will start once a team is assigned.' },
         ongoing:  { title: 'Repair in progress', label: 'Ongoing', tone: '#1D4ED8', bg: '#EFF6FF', icon: 'wrench', msg: 'The maintenance team is working on it now.' },
         success:  { title: 'Repair completed', label: 'Success', tone: '#047857', bg: '#ECFDF5', icon: 'check', msg: 'The repair was completed successfully.' },
-        failed:   { title: 'Repair not completed', label: 'Failed', tone: '#B91C1C', bg: '#FEF2F2', icon: 'x', msg: 'The repair couldn’t be completed. GSU will contact you about next steps, or you can send a new request.' }
+        replacement: { title: 'Needs replacement', label: 'Replacement', tone: '#B91C1C', bg: '#FEF2F2', icon: 'x', msg: 'The item couldn’t be repaired and needs to be replaced. GSU will contact you about next steps.' }
       }
     },
     BK: {
@@ -352,10 +353,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const s = kinds[kind].states[result.status] || common[result.status] || common.notfound;
     dialog.style.setProperty('--tone', s.tone);
     dialog.style.setProperty('--tone-bg', s.bg);
-    $('ua-tr-badge').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + icons[s.icon] + '</svg>';
+    // Approved facility tickets get the celebratory header, a large drawn check and the progress steps
+    const celebrate = kind === 'FM' && ['approved', 'reserved'].includes(result.status);
+    dialog.classList.toggle('is-approved', celebrate);
+    $('ua-tr-badge').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+      + (celebrate ? '<path pathLength="1" d="M5.5 12.5l4.5 4.5L18.5 8"/>' : icons[s.icon]) + '</svg>';
     $('ua-tr-type').textContent = kind === 'BK' ? kinds[kind].name : kinds[kind].name + ' ticket';
     $('ua-tr-code').textContent = result.code || '';
-    $('ua-tr-status').textContent = isStatus ? s.title : s.label;
+    $('ua-tr-status').textContent = isStatus ? s.title + (celebrate ? '!' : '') : s.label;
     $('ua-tr-pill').textContent = s.label;
     $('ua-tr-pill').hidden = !isStatus;
     let message = s.msg;
@@ -368,6 +373,15 @@ document.addEventListener('DOMContentLoaded', function () {
       message = 'Your request and payment are approved. Open the completed application PDF below.';
     }
     $('ua-tr-msg').textContent = message;
+    const steps = $('ua-tr-steps');
+    const current = { pending_payment: 2, payment_uploaded: 2, payment_verified: 4 }[result.payment_status];
+    steps.hidden = !(celebrate && current);
+    if (!steps.hidden) {
+      steps.innerHTML = ['Submitted', 'Approved', result.payment_status === 'payment_uploaded' ? 'Verifying payment' : 'Payment', 'Confirmed']
+        .map((label, i) => '<li class="' + (i < current ? 'is-done' : i === current ? 'is-now' : '') + '"' + (i === current ? ' aria-current="step"' : '') + '><span></span>' + label + '</li>')
+        .join('');
+    }
+    const paymentLabels = { not_required: 'Not required', pending_payment: 'Waiting for your receipt', payment_uploaded: 'Receipt being verified', payment_verified: 'Verified' };
     const rows = (kind === 'RM'
       ? [['Facility', result.venue], ['Subject', result.subject], ['Sent', result.sent]]
       : [
@@ -375,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
           ...(kind === 'BK' ? [['Purpose', result.purpose]] : []),
           ['Date', result.date],
           ['Time', result.time],
-          ...(kind === 'FM' && result.payment_status ? [['Payment', result.payment_status.replaceAll('_', ' ')]] : [])
+          ...(kind === 'FM' && result.payment_status ? [['Payment', paymentLabels[result.payment_status] || result.payment_status.replaceAll('_', ' ')]] : [])
         ]).filter(r => r[1]);
     dialog.querySelectorAll('.ua-tr-actions [data-kind]').forEach(el => { el.hidden = el.dataset.kind !== kind; });
     const dl = $('ua-tr-details');
@@ -499,17 +513,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
 {{-- KEY FACILITIES --}}
 @php
-  $keyFacilities = [
-    ['name' => 'Busalian Hall',  'img' => 'busalian-hall.jpg',  'desc' => 'The main multi-purpose hall for large assemblies, graduations, and formal ceremonies.'],
-    ['name' => 'Paghiusa Hall',  'img' => 'paghiusa-hall.jpg',  'desc' => 'A large audio-visual hall ideal for university-wide seminars and major presentations.'],
-    ['name' => 'Tiripunan Hall', 'img' => 'tiripunan-hall.jpg', 'desc' => 'A versatile gathering space designed for student organization meetings and collaborative activities.'],
-    ['name' => 'Grandstand',     'img' => 'grand-stand.jpg',    'desc' => 'Open-air seating and field area for university sports events, intramurals, and outdoor gatherings.'],
-    ['name' => 'New AVR',        'img' => 'new-avr.jpg',        'desc' => 'Newly upgraded audio-visual room featuring state-of-the-art projection and sound systems.'],
-    ['name' => 'E-Hub',          'img' => null,                 'desc' => 'Modern digital innovation center equipped with workstations for tech events and workshops.'],
-    ['name' => 'CIT AVR',        'img' => null,                 'desc' => "Dedicated audio-visual room for the College of Industrial Technology's lectures and defenses."],
-    ['name' => 'CBA AVR',        'img' => null,                 'desc' => "Premier audio-visual facility for the College of Business Administration's seminars and conferences."],
-    ['name' => 'Balay ni Juan',  'img' => null,                 'desc' => 'A cultural and heritage venue suited for intimate gatherings, art exhibits, and special receptions.'],
+  // Display name + homepage blurb for the original venues (keyed by letters only);
+  // any other facility uses its own name and description from the admin form.
+  $venueCopy = [
+    'busalianhall'  => ['Busalian Hall',  'The main multi-purpose hall for large assemblies, graduations, and formal ceremonies.'],
+    'paghiusahall'  => ['Paghiusa Hall',  'A large audio-visual hall ideal for university-wide seminars and major presentations.'],
+    'tiripunanhall' => ['Tiripunan Hall', 'A versatile gathering space designed for student organization meetings and collaborative activities.'],
+    'grandstand'    => ['Grandstand',     'Open-air seating and field area for university sports events, intramurals, and outdoor gatherings.'],
+    'newavr'        => ['New AVR',        'Newly upgraded audio-visual room featuring state-of-the-art projection and sound systems.'],
+    'ehub'          => ['E-Hub',          'Modern digital innovation center equipped with workstations for tech events and workshops.'],
+    'citavr'        => ['CIT AVR',        "Dedicated audio-visual room for the College of Industrial Technology's lectures and defenses."],
+    'cbaavr'        => ['CBA AVR',        "Premier audio-visual facility for the College of Business Administration's seminars and conferences."],
+    'trackoval'     => ['Track Oval',     'Running track and field for athletics meets, PE classes, and campus-wide sports activities.'],
+    'coveredgym'    => ['Covered Gym',    'Indoor court for basketball, volleyball, intramurals, and large weather-proof gatherings.'],
+    'ictavr'        => ['ICT AVR',        'Audio-visual room for the College of Computer Studies’ lectures, defenses, and tech talks.'],
+    'ceaavr'        => ['CEA AVR',        "Audio-visual room for the College of Engineering and Architecture's seminars and presentations."],
+    'balaynijuan'   => ['Balay ni Juan',  'A cultural and heritage venue suited for intimate gatherings, art exhibits, and special receptions.'],
   ];
+  $keyFacilities = ($keyFacilities ?? collect())->map(function ($f) use ($venueCopy) {
+    [$name, $blurb] = $venueCopy[preg_replace('/[^a-z]/', '', strtolower($f->name))] ?? [$f->name, null];
+    $desc = trim((string) $f->description);
+    return [
+      'name' => $name,
+      'img'  => $f->photo_url,
+      // Seeded rows repeat the name as the description; prefer the curated blurb then.
+      'desc' => ($desc !== '' && strcasecmp($desc, $f->name) !== 0) ? $desc : ($blurb ?? 'Available for reservation through the Facility Management System.'),
+    ];
+  });
   // Venues without a photo get a panel in one of the seal's colours
   $sealTones = ['green', 'blue', 'gold', 'crimson'];
 @endphp
@@ -534,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <article class="ua-fac-card">
           <div class="ua-fac-media">
             @if ($facility['img'])
-              <img src="{{ asset('img/facilities/' . $facility['img']) }}" alt="{{ $facility['name'] }}" loading="lazy">
+              <img src="{{ $facility['img'] }}" alt="{{ $facility['name'] }}" loading="lazy">
             @else
               <div class="ul-fac-tone is-{{ $sealTones[$i % count($sealTones)] }}">
                 <span class="ul-fac-initial" aria-hidden="true">{{ \Illuminate\Support\Str::of($facility['name'])->explode(' ')->map(fn ($w) => mb_substr($w, 0, 1))->take(2)->join('') }}</span>
@@ -544,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="ua-fac-body">
             <h3>{{ $facility['name'] }}</h3>
-            <p class="ua-fac-desc">{{ $facility['desc'] }}</p>
+            <p class="ua-fac-desc">{{ \Illuminate\Support\Str::limit($facility['desc'], 140) }}</p>
           </div>
         </article>
       @endforeach

@@ -39,7 +39,7 @@ class DashboardController extends Controller
             'notified' => MaintenanceTicket::where('requester_id', $userId)->where('status', 'notified')->count(),
             'ongoing' => MaintenanceTicket::where('requester_id', $userId)->where('status', 'ongoing')->count(),
             'success' => MaintenanceTicket::where('requester_id', $userId)->where('status', 'success')->count(),
-            'failed' => MaintenanceTicket::where('requester_id', $userId)->where('status', 'failed')->count(),
+            'replacement' => MaintenanceTicket::where('requester_id', $userId)->where('status', 'replacement')->count(),
         ];
         $maintenanceStats['total'] = array_sum($maintenanceStats);
 

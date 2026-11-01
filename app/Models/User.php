@@ -63,6 +63,22 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isFacilityStaff(): bool
+    {
+        return $this->role === 'facility_staff';
+    }
+
+    /** Full admins and facility staff: everyone who handles facility requests and reservations. */
+    public function managesFacilities(): bool
+    {
+        return $this->isAdmin() || $this->isFacilityStaff();
+    }
+
+    public function isMaintenanceStaff(): bool
+    {
+        return $this->role === 'maintenance_staff';
+    }
+
     public function isCollegeStaff(): bool
     {
         return $this->role === 'college_staff';

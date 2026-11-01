@@ -90,7 +90,7 @@ class AuthController extends Controller
     protected function belongsToPortal($user, string $portal): bool
     {
         return match ($portal) {
-            'admin'   => $user->isAdmin(),
+            'admin'   => $user->isAdmin() || $user->isFacilityStaff() || $user->isMaintenanceStaff(), // GSU staff sign in through the GSU portal
             'college' => $user->isCollegeStaff(),
             'org'     => $user->isOrgStaff(),
             default   => false,
@@ -108,7 +108,7 @@ class AuthController extends Controller
 
     protected function redirectByRole($user)
     {
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->isFacilityStaff() || $user->isMaintenanceStaff()) {
             return redirect()->route('admin.dashboard');
         }
 

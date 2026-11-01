@@ -16,7 +16,7 @@ class MaintenanceTicketController extends Controller
 
     private const ACTIVE_STATUSES = ['notified', 'pending', 'ongoing'];
 
-    private const COMPLETED_STATUSES = ['success', 'failed'];
+    private const COMPLETED_STATUSES = ['success', 'replacement'];
 
     public function __construct(protected NotificationService $notifications)
     {
@@ -35,6 +35,48 @@ class MaintenanceTicketController extends Controller
             ->paginate(15, ['*'], 'completed_page');
 
         return view('admin.maintenance-tickets.index', compact('activeTickets', 'completedTickets'));
+    }
+
+    /** Repair records for a whole year: per-month counts, plus the tickets of one selected month. */
+    public function records(Request $request)
+    {
+        $year = filter_var($request->query('year', now()->year), FILTER_VALIDATE_INT);
+        $year = $year !== false && $year >= 2024 && $year <= 2100 ? $year : now()->year;
+        $month = filter_var($request->query('month', $year === now()->year ? now()->month : 12), FILTER_VALIDATE_INT);
+        $month = $month !== false && $month >= 1 && $month <= 12 ? $month : 1;
+
+        // Tickets count in the month they were received
+        $byStatus = MaintenanceTicket::whereYear('created_at', $year)
+            ->selectRaw('MONTH(created_at) as m, status, COUNT(*) as n')
+            ->groupByRaw('MONTH(created_at), status')
+            ->get()
+            ->groupBy('m');
+
+        $months = collect(range(1, 12))->mapWithKeys(function ($m) use ($byStatus) {
+            $rows = ($byStatus[$m] ?? collect())->pluck('n', 'status');
+            $open = (int) (($rows['pending'] ?? 0) + ($rows['notified'] ?? 0));
+
+            return [$m => [
+                'open' => $open,
+                'ongoing' => (int) ($rows['ongoing'] ?? 0),
+                'success' => (int) ($rows['success'] ?? 0),
+                'replacement' => (int) ($rows['replacement'] ?? 0),
+                'total' => (int) $rows->sum(),
+            ]];
+        });
+
+        $completedByMonth = DashboardController::countByMonth(MaintenanceTicket::where('status', 'success'), 'completed_at', $year);
+
+        $finished = MaintenanceTicket::where('status', 'success')->whereYear('completed_at', $year)->get(['created_at', 'completed_at']);
+        $avgDays = $finished->isEmpty() ? null : round($finished->avg(fn ($t) => $t->created_at->diffInHours($t->completed_at) / 24), 1);
+
+        $tickets = MaintenanceTicket::with(['requester', 'facility'])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->oldest()
+            ->get();
+
+        return view('admin.repair-records.index', compact('year', 'month', 'months', 'completedByMonth', 'avgDays', 'tickets'));
     }
 
     public function show(MaintenanceTicket $ticket)
@@ -72,8 +114,11 @@ class MaintenanceTicketController extends Controller
     public function update(Request $request, MaintenanceTicket $ticket)
     {
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['pending', 'ongoing', 'success', 'failed'])],
-            'admin_remarks' => ['nullable', 'string', 'max:5000'],
+            'status' => ['required', Rule::in(['pending', 'ongoing', 'success', 'replacement'])],
+            // Replacement closes the ticket, so the sender must be told why it couldn't be repaired
+            'admin_remarks' => ['nullable', 'required_if:status,replacement', 'string', 'max:5000'],
+        ], [
+            'admin_remarks.required_if' => 'Explain why the item can\'t be repaired and needs replacement.',
         ]);
 
         $statusChanged = $ticket->status !== $validated['status'];
@@ -86,7 +131,8 @@ class MaintenanceTicketController extends Controller
         // Tell the sender (and, for college tickets, the whole college) about a new status or a new update
         if (($statusChanged || $remarksChanged) && $ticket->requester) {
             $statusLabel = ucfirst($ticket->status);
-            $remarks = $ticket->admin_remarks ? " Admin update: {$ticket->admin_remarks}" : '';
+            $remarksLabel = $ticket->status === 'replacement' ? 'Reason' : 'Admin update';
+            $remarks = $ticket->admin_remarks ? " {$remarksLabel}: {$ticket->admin_remarks}" : '';
             foreach ($ticket->requester->collegeTeamIds() as $memberId) {
                 $this->notifications->notifyUser(
                     $memberId,

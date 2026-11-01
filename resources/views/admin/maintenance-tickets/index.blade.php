@@ -7,7 +7,7 @@
         'pending' => 'is-warn',
         'ongoing' => 'is-info',
         'success' => 'is-good',
-        'failed'  => 'is-bad',
+        'replacement' => 'is-bad',
         default   => 'is-neutral',
     };
     $initialsOf = fn ($name) => collect(preg_split('/\s+/', trim((string) $name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: '?';
@@ -40,7 +40,7 @@
             <div>
                 <p class="pk-stat-label">Completed tasks</p>
                 <p class="pk-stat-value">{{ $doneCount }}</p>
-                <p class="pk-stat-hint">Marked success or failed</p>
+                <p class="pk-stat-hint">Marked success or replacement</p>
             </div>
             <span class="pk-stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
         </div>
@@ -144,7 +144,7 @@
             <div class="pk-empty">
                 <span class="pk-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
                 <h3>No completed tasks yet</h3>
-                <p>Tickets marked success or failed move here.</p>
+                <p>Tickets marked success or replacement move here.</p>
             </div>
         @endif
     </section>

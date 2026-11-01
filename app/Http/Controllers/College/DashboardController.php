@@ -36,7 +36,7 @@ class DashboardController extends Controller
 
         // Repair tickets are shared among staff in the same college.
         $tickets = MaintenanceTicket::whereIn('requester_id', $user->collegeTeamIds());
-        $maintenanceStats = collect(['pending', 'notified', 'ongoing', 'success', 'failed'])
+        $maintenanceStats = collect(['pending', 'notified', 'ongoing', 'success', 'replacement'])
             ->mapWithKeys(fn ($status) => [$status => (clone $tickets)->where('status', $status)->count()])
             ->all();
         $maintenanceStats['total'] = array_sum($maintenanceStats);

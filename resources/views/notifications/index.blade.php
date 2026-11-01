@@ -2,7 +2,7 @@
     // Show the page inside the signed-in user's own portal (sidebar + topbar); guests and others keep the plain page.
     $role = optional(auth()->user())->role;
     [$notifLayout, $notifSection] = match ($role) {
-        'admin'         => ['layouts.admin', 'admin-content'],
+        'admin', 'facility_staff', 'maintenance_staff' => ['layouts.admin', 'admin-content'],
         'college_staff' => ['layouts.college', 'college-content'],
         'org_staff'     => ['layouts.org', 'org-content'],
         default         => ['layouts.app', 'content'],

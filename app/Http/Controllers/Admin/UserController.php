@@ -36,7 +36,7 @@ class UserController extends Controller
             'tickets'  => (int) ($tickets[$id] ?? 0),
         ]]);
 
-        $adminTeam = User::where('role', 'admin')->orderBy('name')->get();
+        $adminTeam = User::whereIn('role', ['admin', 'facility_staff', 'maintenance_staff'])->orderBy('name')->get();
 
         return view('admin.users.index', compact('users', 'history', 'adminTeam') + ['systemEmail' => self::SYSTEM_EMAIL]);
     }
@@ -49,6 +49,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $validated = $request->validated();
+        $validated['role'] = $this->resolveRole($validated);
 
         $data = [
             'name'     => $validated['name'],
@@ -59,7 +60,7 @@ class UserController extends Controller
             'role'     => $validated['role'],
         ];
 
-        if ($validated['role'] === 'admin') {
+        if (in_array($validated['role'], ['admin', 'facility_staff', 'maintenance_staff'], true)) {
             $data['position'] = $validated['position'] ?? null;   // title within the admin team
         }
 
@@ -101,10 +102,16 @@ class UserController extends Controller
             'college_name'      => 'nullable|string|max:255',
             'organization_name' => 'nullable|string|max:255',
             'position'          => 'nullable|string|max:120',
+            'admin_access'      => 'nullable|in:full,facility_staff,maintenance_staff',
         ], [
             'contact_number.regex' => 'Enter an 11-digit contact number in the format 09xx-xxx-xxxx.',
             'role.in'              => $isSelf ? 'You can\'t change the role of your own account.' : 'Choose a valid role.',
         ]);
+
+        // Your own account stays a full admin (you'd be locked out of this page)
+        if (! $isSelf) {
+            $validated['role'] = $this->resolveRole($validated);
+        }
 
         $user->name           = $validated['name'];
         $user->last_name      = $validated['last_name'];
@@ -121,7 +128,7 @@ class UserController extends Controller
         }
         // Admins get their admin-team title here; college/org positions are managed by that unit's head,
         // so they're kept unless the account moves between admin and a unit
-        if ($validated['role'] === 'admin') {
+        if (in_array($validated['role'], ['admin', 'facility_staff', 'maintenance_staff'], true)) {
             $user->position = $validated['position'] ?? null;
         } elseif ($user->role !== $validated['role']) {
             $user->position = null;
@@ -133,6 +140,16 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('status', 'Account updated for ' . $user->name . '.');
+    }
+
+    /** Facilities and Repair & Maintenance are access levels under Admin: the form sends role=admin plus admin_access. */
+    private function resolveRole(array $validated): string
+    {
+        $access = $validated['admin_access'] ?? null;
+
+        return $validated['role'] === 'admin' && in_array($access, ['facility_staff', 'maintenance_staff'], true)
+            ? $access
+            : $validated['role'];
     }
 
     public function deactivate(User $user)

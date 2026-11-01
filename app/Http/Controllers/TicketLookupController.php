@@ -199,12 +199,19 @@ class TicketLookupController extends Controller
             return null;
         }
 
+        // A multi-day booking is one row per day (CODE, CODE-D2...): report the whole range, whichever day's code was typed
+        $baseCode = preg_replace('/-D\d+$/', '', $booking->booking_code);
+        $lastDay = Booking::where('booking_code', 'like', $baseCode . '-D%')->orderByDesc('start_time')->first();
+        $firstDay = $lastDay ? Booking::where('booking_code', $baseCode)->first() ?? $booking : $booking;
+
         return response()->json([
             'status' => $booking->status,
-            'code' => $booking->booking_code,
+            'code' => $lastDay ? $baseCode : $booking->booking_code,
             'venue' => $booking->facilities->pluck('name')->join(', ') ?: null,
             'purpose' => $booking->purpose,
-            'date' => $booking->start_time?->format('D, M j, Y'),
+            'date' => $lastDay
+                ? $this->dateLabel($firstDay->start_time?->toDateString(), $lastDay->start_time?->toDateString())
+                : $booking->start_time?->format('D, M j, Y'),
             'time' => $booking->start_time && $booking->end_time
                 ? $booking->start_time->format('g:i A') . ' – ' . $booking->end_time->format('g:i A')
                 : null,

@@ -104,13 +104,19 @@
             <dt class="font-semibold text-gray-700">Purpose</dt>
             <dd class="text-gray-800">{{ $payload['purpose'] ?? '-' }}</dd>
         </div>
+        @if (!empty($payload['number_of_persons']))
+        <div>
+            <dt class="font-semibold text-gray-700">Number of Persons</dt>
+            <dd class="text-gray-800">{{ number_format($payload['number_of_persons']) }}</dd>
+        </div>
+        @endif
         <div class="md:col-span-2">
             <dt class="font-semibold text-gray-700">Noted By</dt>
             <dd class="text-gray-800">{{ $payload['noted_by']['name'] ?? '-' }}</dd>
         </div>
     </dl>
 
-    @if(!empty($payload['equipment']))
+    @if(!empty($payload['equipment']) || !empty($payload['equipment_others']))
         <div class="mt-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-3">Requested Equipment</h2>
             <table class="min-w-full divide-y divide-gray-200 text-sm">
@@ -128,6 +134,12 @@
                                 <td class="px-4 py-2 text-right">{{ $qty }}</td>
                             </tr>
                         @endif
+                    @endforeach
+                    @foreach($payload['equipment_others'] ?? [] as $other)
+                        <tr>
+                            <td class="px-4 py-2">{{ $other['name'] ?? '' }} <span class="text-gray-500">(other)</span></td>
+                            <td class="px-4 py-2 text-right">{{ $other['qty'] ?? 1 }}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>

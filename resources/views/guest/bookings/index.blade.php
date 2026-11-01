@@ -77,8 +77,13 @@
                 <div class="crsv-list">
                     @foreach ($items as $booking)
                         @php
-                            $past = $booking->end_time && $booking->end_time->lt($now);
-                            $tone = match ($booking->status) { 'rescheduled' => 'is-warn', 'cancelled' => 'is-bad', 'reserved' => 'is-info', default => 'is-neutral' };
+                            $days = $booking->days ?? collect([$booking]);
+                            $lastDay = $days->last();
+                            $dayCount = $days->count();
+                            $statuses = $days->pluck('status')->unique()->values();
+                            $past = $lastDay->end_time && $lastDay->end_time->lt($now);
+                            $ongoing = ! $past && $booking->start_time->lte($now);
+                            $toneFor = fn ($s) => match ($s) { 'rescheduled' => 'is-warn', 'cancelled' => 'is-bad', 'reserved' => 'is-info', default => 'is-neutral' };
                         @endphp
                         <article class="crsv-item {{ $past ? 'is-past' : '' }}">
                             <span class="crsv-date" aria-hidden="true">
@@ -89,7 +94,11 @@
                                 <p class="crsv-code">{{ $booking->booking_code }}</p>
                                 <p class="crsv-time">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                                    {{ $booking->start_time->format('M d, Y') }} · {{ $booking->start_time->format('H:i') }} – {{ $booking->end_time->format('H:i') }}
+                                    @if ($dayCount > 1)
+                                        {{ $booking->start_time->format($booking->start_time->year === $lastDay->start_time->year ? 'M j' : 'M j, Y') }} – {{ $lastDay->start_time->format('M j, Y') }} · {{ $booking->start_time->format('H:i') }} – {{ $booking->end_time->format('H:i') }} daily
+                                    @else
+                                        {{ $booking->start_time->format('M d, Y') }} · {{ $booking->start_time->format('H:i') }} – {{ $booking->end_time->format('H:i') }}
+                                    @endif
                                 </p>
                                 <p class="crsv-purpose">{{ Str::limit($booking->purpose ?? '-', 80) }}</p>
                                 <div class="crsv-venues">
@@ -101,8 +110,10 @@
                                 </div>
                             </div>
                             <div class="crsv-side">
-                                <span class="pk-pill {{ $tone }}">{{ ucfirst($booking->status) }}</span>
-                                <span class="crsv-when">{{ $past ? 'Done' : $booking->start_time->diffForHumans() }}</span>
+                                @foreach ($statuses as $status)
+                                    <span class="pk-pill {{ $toneFor($status) }}">{{ ucfirst($status) }}@if ($statuses->count() > 1) ({{ $days->where('status', $status)->count() }})@endif</span>
+                                @endforeach
+                                <span class="crsv-when">{{ $past ? 'Done' : ($ongoing ? 'Ongoing' : $booking->start_time->diffForHumans()) }}</span>
                             </div>
                         </article>
                     @endforeach

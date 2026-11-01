@@ -74,8 +74,11 @@ window.bkPicker = (function () {
                 const len = b - a, hrs = Math.round(len / 30) / 2;
                 it.hours = hrs + (hrs === 1 ? ' hr' : ' hrs');
                 it.until = clock12(it.end);
-                it.whole = len >= 360;
-                it.span = it.whole ? 'Whole day' : 'Half day' + (b <= 780 ? ' · Morning' : (a >= 720 ? ' · Afternoon' : ''));
+                // Morning (AM) = starts before 12 PM; afternoon (PM) = runs past 1 PM (12–1 PM is slack). Both halves = whole day.
+                it.am = a < 720;
+                it.pm = b > 780 || !it.am;
+                it.whole = it.am && it.pm;
+                it.span = it.whole ? 'Whole day' : (it.am ? 'Half day · Morning' : 'Half day · Afternoon');
             }
             return it;
         }
@@ -257,8 +260,10 @@ window.bkPicker = (function () {
                 if (!current.date) slotsBox.innerHTML = '<span class="vb-idle">Pick a date to see times</span>';
                 else if (!mine.length) slotsBox.innerHTML = '<span class="vb-free">Free all day</span>';
                 else slotsBox.innerHTML = mine.map(it => window.dpBookingHtml(it)).join('');
-                status.textContent = !current.date || !mine.length ? 'Available' : (mine.some(it => it.whole) ? 'Booked whole day' : 'Partly booked');
-                status.className = 'pk-pill vb-status ' + (!current.date || !mine.length ? 'is-good' : (mine.some(it => it.whole) ? 'is-bad' : 'is-warn'));
+                // AM and PM both taken = fully booked; only one half taken = partly booked
+                const am = mine.some(it => it.am), pm = mine.some(it => it.pm);
+                status.textContent = !current.date || !mine.length ? 'Available' : (am && pm ? 'Fully booked · whole day' : (am ? 'Partly booked · PM free' : 'Partly booked · AM free'));
+                status.className = 'pk-pill vb-status ' + (!current.date || !mine.length ? 'is-good' : (am && pm ? 'is-bad' : 'is-warn'));
                 const clash = start !== null && end !== null && mine.some(it => { const [a, b] = rangeOf(it.time); return a !== null && b !== null && a < end && b > start; });
                 card.classList.toggle('is-clash', clash);
             });

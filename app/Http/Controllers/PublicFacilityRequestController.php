@@ -49,10 +49,18 @@ class PublicFacilityRequestController extends Controller
             'last_name'              => ['required', 'string', 'max:120', new PersonName],
             'contact_number'         => 'required|string|max:40',
             'email'                  => 'required|email|max:160',
-            'address'                => 'required|string|max:255',
+            'address_street'         => 'nullable|string|max:120',
+            'address_barangay'       => 'required|string|max:120',
+            'address_town'           => 'required|string|max:120',
+            'address_province'       => 'required|string|max:120',
             'organization'           => 'required|string|max:160',
             'noted_signatory_id'     => 'required|in:custom',
             'noted_signatory_custom' => 'required_if:noted_signatory_id,custom|string|max:255',
+        ], [], [
+            'address_street'   => 'house no. / street',
+            'address_barangay' => 'barangay',
+            'address_town'     => 'town or city',
+            'address_province' => 'province',
         ]);
 
         $walkIn = User::firstOrCreate(
@@ -80,7 +88,8 @@ class PublicFacilityRequestController extends Controller
         $payload['client_name']          = $guest['client_name'];
         $payload['contact_number']       = $guest['contact_number'];
         $payload['email']                = $guest['email'];
-        $payload['address']              = $guest['address'];
+        $payload['address']              = collect([$guest['address_street'] ?? null, preg_match('/^(barangay|brgy)\b/i', $guest['address_barangay']) ? $guest['address_barangay'] : 'Brgy. ' . $guest['address_barangay'], $guest['address_town'], $guest['address_province']])
+            ->filter()->join(', ');
         $payload['organization']         = $guest['organization'];
         $payload['noted_signatory_id']   = $guest['noted_signatory_id'];
         $payload['noted_signatory_name'] = $guest['noted_signatory_custom'];

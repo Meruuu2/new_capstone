@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
  *
  * messages():    JSON list of messages newer than ?after=<id> (the page polls this every few seconds)
  * sendMessage(): adds a message (JSON for the page script, redirect for a plain form post) and notifies the other side
- * Closed tickets (Success / Failed) are read-only.
+ * Closed tickets (Success / Replacement) are read-only.
  */
 trait HandlesTicketMessages
 {
@@ -94,8 +94,8 @@ trait HandlesTicketMessages
             'body'    => $m->body,
             'mine'    => $m->user_id === auth()->id(),
             'author'  => $user?->name ?? 'Deleted account',
-            'side'    => $user?->isAdmin() ? 'admin' : 'college',
-            'role'    => $user?->isAdmin() ? ($user->position ?: 'GSU Admin') : ($user?->college_name ?: 'College staff'),
+            'side'    => $user?->isAdmin() || $user?->isMaintenanceStaff() ? 'admin' : 'college',
+            'role'    => $user?->isAdmin() ? ($user->position ?: 'GSU Admin') : ($user?->isMaintenanceStaff() ? 'Repair & Maintenance' : ($user?->college_name ?: 'College staff')),
             'time'    => $m->created_at?->format('M j, g:i A'),
             'iso'     => $m->created_at?->toIso8601String(),
         ];

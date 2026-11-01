@@ -43,9 +43,7 @@
         : collect([$p['facility_name'] ?? null, $p['facility_name_custom'] ?? null])->filter()->values();
     $venueTitle = $venues->isNotEmpty() ? $venues->join(', ') : 'Facility request';
 
-    $equipLabels = ['monobloc_chair' => 'Monobloc chair', 'table' => 'Table', 'electric_fan' => 'Electric fan', 'rostrum' => 'Rostrum', 'flag' => 'Flag & school color', 'sound' => 'Sound system', 'led' => 'LED wall'];
-    $equipment = collect($p['equipment'] ?? [])->filter(fn ($q) => (int) $q > 0)
-        ->map(fn ($q, $k) => ['label' => $equipLabels[$k] ?? ucfirst(str_replace('_', ' ', $k)), 'qty' => (int) $q]);
+    $equipment = \App\Models\FormSubmission::equipmentItems($p);
 
     $requester = trim(($p['requester_name'] ?? '') . (!empty($p['requester_unit']) ? ' · ' . $p['requester_unit'] : ''));
 @endphp
@@ -164,6 +162,12 @@
                     <dt>Purpose</dt>
                     <dd>{{ $p['purpose'] ?? '—' }}</dd>
                 </div>
+                @if (!empty($p['number_of_persons']))
+                <div class="rqd-row">
+                    <dt>Number of persons</dt>
+                    <dd>{{ number_format($p['number_of_persons']) }}</dd>
+                </div>
+                @endif
                 <div class="rqd-row">
                     <dt>Noted by</dt>
                     <dd>{{ ($p['noted_signatory_name'] ?? '') ? $p['noted_signatory_name'] . (!empty($p['noted_signatory_position']) ? ' · ' . $p['noted_signatory_position'] : '') : 'No signatory' }}</dd>

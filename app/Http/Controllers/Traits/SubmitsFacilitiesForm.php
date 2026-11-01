@@ -61,6 +61,7 @@ trait SubmitsFacilitiesForm
             'facility_names'  => $facilityNames,
             'venue_others'    => $validated['venue_others'] ?? '',
             'purpose'         => $validated['purpose'],
+            'number_of_persons' => isset($validated['number_of_persons']) ? (int) $validated['number_of_persons'] : null,
             'equipment'       => [
                 'monobloc_chair' => (int) $request->input('qty_monobloc', 0),
                 'table'          => (int) $request->input('qty_table', 0),
@@ -70,6 +71,7 @@ trait SubmitsFacilitiesForm
                 'sound'          => (int) $request->input('qty_sound', 0),
                 'led'            => (int) $request->input('qty_led', 0),
             ],
+            'equipment_others' => FormSubmission::otherEquipmentFrom($validated),
         ];
 
         if ($attachmentPaths) {
@@ -93,7 +95,7 @@ trait SubmitsFacilitiesForm
 
         $notifications = app(NotificationService::class);
         $notifications->notifyFormSubmitted($user->id, $submission->id);
-        $notifications->notifyAdmins(
+        $notifications->notifyFacilityTeam(
             'form_pending_admin',
             'New facilities request from ' . $this->requesterType(),
             $this->requesterUnit() . ' submitted a new utilization request.',

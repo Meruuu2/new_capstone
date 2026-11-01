@@ -15,7 +15,7 @@ class PublicCalendarController extends Controller
     {
         $month = $this->resolveMonth($request);
         $user = $request->user();
-        $includeEventDetails = $user?->isAdmin()
+        $includeEventDetails = $user?->managesFacilities()
             || $user?->isCollegeStaff()
             || $user?->isOrgStaff();
 
@@ -30,7 +30,7 @@ class PublicCalendarController extends Controller
         $current = $this->resolveMonth($request);
         $bookings = app(ReservationCalendarService::class)->bookingsForMonth(
             $current,
-            auth()->user()?->isAdmin() ?? false
+            auth()->user()?->managesFacilities() ?? false
         );
 
         $days = $this->groupByDay($bookings);
@@ -51,7 +51,10 @@ class PublicCalendarController extends Controller
             ->orderBy('name')
             ->get();
 
+        $keyFacilities = Facility::where('is_active', true)->orderBy('name')->get();
+
         return view('welcome', [
+            'keyFacilities'         => $keyFacilities,
             'currentMonth'          => $current,
             'days'                  => $days,
             'unavailableFacilities' => $unavailableFacilities,

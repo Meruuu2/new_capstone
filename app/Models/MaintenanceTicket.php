@@ -51,10 +51,10 @@ class MaintenanceTicket extends Model
         return $this->hasMany(MaintenanceTicketMessage::class)->orderBy('id');
     }
 
-    /** Success / Failed tickets are closed: their conversation is read-only. */
+    /** Success / Replacement tickets are closed: their conversation is read-only. */
     public function isClosed(): bool
     {
-        return in_array($this->status, ['success', 'failed'], true);
+        return in_array($this->status, ['success', 'replacement'], true);
     }
 
     public function staffAssignments()

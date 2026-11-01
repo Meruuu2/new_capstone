@@ -21,7 +21,7 @@
             @auth
                 @php
                     $user = auth()->user();
-                    $dashRoute = $user->isAdmin()
+                    $dashRoute = $user->isAdmin() || $user->isFacilityStaff() || $user->isMaintenanceStaff()
                         ? 'admin.dashboard'
                         : ($user->isCollegeStaff()
                             ? 'college.dashboard'

@@ -18,16 +18,26 @@ class NotificationService
         ]);
     }
 
-    public function notifyAdmins(string $type, string $title, string $message, array $data = []): void
+    /** Repair tickets go to the admins and the repair & maintenance staff. */
+    public function notifyRepairTeam(string $type, string $title, string $message, array $data = []): void
     {
-        User::where('role', 'admin')->each(function (User $admin) use ($type, $title, $message, $data) {
-            $this->notifyUser($admin->id, $type, $title, $message, $data);
+        User::whereIn('role', ['admin', 'maintenance_staff'])->each(function (User $user) use ($type, $title, $message, $data) {
+            $this->notifyUser($user->id, $type, $title, $message, $data);
         });
     }
 
+    /** Facility requests and reservations go to the admins and the facility staff. */
+    public function notifyFacilityTeam(string $type, string $title, string $message, array $data = []): void
+    {
+        User::whereIn('role', ['admin', 'facility_staff'])->each(function (User $user) use ($type, $title, $message, $data) {
+            $this->notifyUser($user->id, $type, $title, $message, $data);
+        });
+    }
+
+    // Only used for booking changes, so the facility staff are included
     public function notifyAdminsExcept(int $excludeUserId, string $type, string $title, string $message, array $data = []): void
     {
-        User::where('role', 'admin')
+        User::whereIn('role', ['admin', 'facility_staff'])
             ->where('id', '!=', $excludeUserId)
             ->each(function (User $admin) use ($type, $title, $message, $data) {
                 $this->notifyUser($admin->id, $type, $title, $message, $data);

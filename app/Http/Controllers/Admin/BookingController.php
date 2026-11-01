@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\GroupsBookingsByDay;
 use App\Models\Booking;
 use App\Models\Facility;
+use App\Models\FormSubmission;
 use App\Services\ReservationCalendarService;
 use App\Models\Notification;
 use App\Rules\OperatingHours;
@@ -53,25 +54,35 @@ class BookingController extends Controller
         // Search by facility name or purpose or requester name
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('purpose', 'like', '%' . $search . '%')
-                  ->orWhereHas('facilities', function ($q) use ($search) {
-                      $q->where('name', 'like', '%' . $search . '%');
-                  })
-                  ->orWhereHas('requester', function ($q) use ($search) {
-                      $q->where('name', 'like', '%' . $search . '%');
-                  });
+            // Grouped so the OR conditions don't bypass the status/facility/month filters
+            $query->where(function ($query) use ($search) {
+                $query->where('purpose', 'like', '%' . $search . '%')
+                    ->orWhereHas('facilities', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('requester', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    });
+            });
         }
 
-        // Sort by start_time descending
-        $bookings = $query->orderByDesc('start_time')
-            ->paginate(20);
+        $bookings = $this->paginateReservations($query, $request, 20);
+
+        // Guests share the "Walk-in Guest" account, so show the person named on their request form
+        $guestSubmissionIds = $bookings->getCollection()
+            ->where('requester_type', 'guest')
+            ->pluck('additional_details.form_submission_id')
+            ->filter();
+        $guestNames = \App\Models\FormSubmission::whereIn('id', $guestSubmissionIds)->get()
+            ->mapWithKeys(fn ($s) => [$s->id => trim((string) ($s->payload['client_name'] ?? $s->payload['requester_name'] ?? ''))])
+            ->filter();
 
         // Get available facilities for filter dropdown
         $facilities = Facility::where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        return view('admin.bookings.index', compact('bookings', 'facilities'));
+        return view('admin.bookings.index', compact('bookings', 'facilities', 'guestNames'));
     }
 
     public function createDirect()
@@ -95,6 +106,7 @@ class BookingController extends Controller
             'start_time'    => ['required', 'date_format:H:i', new OperatingHours],
             'end_time'      => ['required', 'date_format:H:i', 'after:start_time', new OperatingHours],
             'purpose'       => 'required|string|max:500',
+            'number_of_persons' => 'nullable|integer|min:1|max:100000',
             'requester_name' => 'required|string|max:255',
 
             // Equipment (optional)
@@ -105,6 +117,7 @@ class BookingController extends Controller
             'qty_flag'      => 'nullable|integer|min:0',
             'qty_sound'     => 'nullable|integer|min:0',
             'qty_led'       => 'nullable|integer|min:0',
+            ...FormSubmission::OTHER_EQUIPMENT_RULES,
         ], [
             'account_last_name.required' => 'Update your account with a separate last name before creating a direct reservation.',
         ]);
@@ -173,70 +186,6 @@ class BookingController extends Controller
     }
 
     /**
-     * Monthly overview: bar chart of bookings per facility for the month.
-     *
-     * X-axis: facility names (core facilities + "OTHERS")
-     * Y-axis: number of approved/rescheduled bookings.
-     */
-    public function overview(Request $request)
-    {
-        $current = $this->resolveMonth($request);
-
-        $start = $current->copy()->startOfMonth();
-        $end   = $current->copy()->endOfMonth();
-
-        $bookings = Booking::with('facilities')
-            ->whereBetween('start_time', [$start, $end])
-            ->whereIn('status', ['reserved', 'rescheduled', 'completed'])
-            ->get();
-
-        $facilities = Facility::orderBy('name')->get();
-        $series = $facilities->pluck('name')->mapWithKeys(fn ($name) => [$name => 0])->all();
-        $series['OTHERS'] = 0;
-        $bookedHours = array_fill_keys($facilities->pluck('id')->all(), 0.0);
-        $monthEndExclusive = $start->copy()->addMonth();
-        $availableCalendarHours = $start->diffInSeconds($monthEndExclusive) / 3600;
-
-        foreach ($bookings as $booking) {
-            $overlapStart = $booking->start_time->greaterThan($start) ? $booking->start_time->copy() : $start->copy();
-            $overlapEnd = $booking->end_time->lessThan($monthEndExclusive) ? $booking->end_time->copy() : $monthEndExclusive->copy();
-            $hours = $overlapStart->lt($overlapEnd) ? $overlapStart->diffInSeconds($overlapEnd) / 3600 : 0;
-
-            if ($booking->facilities->isEmpty()) {
-                $series['OTHERS']++;
-                continue;
-            }
-
-            foreach ($booking->facilities as $facility) {
-                if (array_key_exists($facility->name, $series)) {
-                    $series[$facility->name]++;
-                    $bookedHours[$facility->id] += $hours;
-                } else {
-                    $series['OTHERS']++;
-                }
-            }
-        }
-
-        $facilityUtilization = $facilities->map(function (Facility $facility) use ($bookedHours, $availableCalendarHours) {
-            $hours = round($bookedHours[$facility->id] ?? 0, 2);
-
-            return [
-                'name' => $facility->name,
-                'booked_hours' => $hours,
-                'available_hours' => round($availableCalendarHours, 2),
-                'utilization' => $availableCalendarHours > 0 ? round($hours / $availableCalendarHours * 100, 2) : 0,
-            ];
-        });
-
-        return view('admin.overview.index', [
-            'currentMonth' => $current,
-            'series'       => $series,
-            'facilityUtilization' => $facilityUtilization,
-            'availableCalendarHours' => round($availableCalendarHours, 2),
-        ]);
-    }
-
-    /**
      * Admin reschedules / modifies an existing booking.
      * Can change facility, date/time, and equipment payload.
      * Marks status as 'rescheduled' and notifies requester.
@@ -260,6 +209,7 @@ class BookingController extends Controller
             'qty_flag'      => 'nullable|integer|min:0',
             'qty_sound'     => 'nullable|integer|min:0',
             'qty_led'       => 'nullable|integer|min:0',
+            ...FormSubmission::OTHER_EQUIPMENT_RULES,
         ]);
 
         $startDateTime = Carbon::parse($data['date_activity'].' '.$data['start_time']);
@@ -290,6 +240,7 @@ class BookingController extends Controller
 
         $updatedDetails = array_merge($existingDetails, [
             'equipment'       => $equipment,
+            'equipment_others' => FormSubmission::otherEquipmentFrom($data),
             'reschedule_note' => $data['reason'],
             'rescheduled_at'  => now()->toDateTimeString(),
             'rescheduled_by'  => auth()->user()->name ?? 'GSU Admin',

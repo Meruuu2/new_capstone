@@ -5,6 +5,8 @@
 @php
     $roleMeta = [
         'admin'         => ['label' => 'Admin',         'class' => 'is-admin',   'icon' => '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'],
+        'facility_staff'    => ['label' => 'Facilities',           'class' => 'is-college', 'icon' => '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>'],
+        'maintenance_staff' => ['label' => 'Repair & maintenance', 'class' => 'is-college', 'icon' => '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z"/>'],
         'college_staff' => ['label' => 'College staff', 'class' => 'is-college', 'icon' => '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>'],
         'org_staff'     => ['label' => 'Org staff',     'class' => 'is-org',     'icon' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.5a3.5 3.5 0 010 7M21.5 20a6.5 6.5 0 00-4-6"/>'],
         'guest'         => ['label' => 'Guest',         'class' => 'is-guest',   'icon' => '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>'],
@@ -35,7 +37,7 @@
         </div>
     </section>
 
-    {{-- Admin team: everyone with the Admin role, with their GSU title --}}
+    {{-- Admin team: everyone with the Admin role (full or Repair & Maintenance access), with their GSU title --}}
     <div class="pk-section-head">
         <h2 class="pk-section-title">Admin team</h2>
         <span class="pk-section-meta">{{ $adminTeam->count() }} {{ $adminTeam->count() === 1 ? 'member' : 'members' }}</span>
@@ -47,7 +49,7 @@
                 <span class="pk-avatar usr-avatar is-admin" aria-hidden="true">{{ $mInitials }}</span>
                 <div class="u-minw-0 adt-body">
                     <p class="adt-name">{{ $member->name }}@if ($member->id === auth()->id())<span class="adt-you">You</span>@endif</p>
-                    <p class="adt-pos {{ $member->position ? '' : 'is-empty' }}">{{ $member->position ?: 'No position set' }}</p>
+                    <p class="adt-pos {{ $member->position ? '' : 'is-empty' }}">{{ $member->position ?: 'No position set' }}@if ($member->isFacilityStaff()) <span class="adt-you">Facilities</span>@elseif ($member->isMaintenanceStaff()) <span class="adt-you">Repair &amp; Maintenance</span>@endif</p>
                     <p class="adt-meta">{{ $member->email }}@if ($member->contact_number) · {{ $member->contact_number }}@endif</p>
                 </div>
                 <a href="{{ route('admin.users.edit', $member) }}" class="adt-edit" aria-label="Edit {{ $member->name }}">
@@ -59,7 +61,7 @@
             <span class="adt-add-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0114 0M19 8v6M16 11h6"/></svg></span>
             <span>
                 <strong>Add admin staff</strong>
-                <span>New GSU team member with full admin access</span>
+                <span>New GSU team member: full, Facilities or Repair &amp; Maintenance access</span>
             </span>
         </a>
     </div>

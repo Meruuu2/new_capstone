@@ -22,6 +22,7 @@ class StoreUserRequest extends FormRequest
             'email'             => 'required|email|unique:users,email',
             'password'          => ['required', 'string', 'confirmed', Password::min(8)->max(94)->mixedCase()->symbols()],
             'role'              => 'required|in:admin,college_staff,org_staff,guest',
+            'admin_access'      => 'nullable|in:full,facility_staff,maintenance_staff', // access level under the Admin role
             'college_name'      => 'nullable|string|max:255',
             'organization_name' => 'nullable|string|max:255',
             'position'          => 'nullable|string|max:120',

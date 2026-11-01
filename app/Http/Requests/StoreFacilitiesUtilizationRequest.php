@@ -72,6 +72,7 @@ class StoreFacilitiesUtilizationRequest extends FormRequest
                 }
             ],
             'purpose'       => 'required|string|max:500',
+            'number_of_persons' => 'nullable|integer|min:1|max:100000',
             'qty_monobloc'  => 'nullable|integer|min:0',
             'qty_table'     => 'nullable|integer|min:0',
             'qty_fan'       => 'nullable|integer|min:0',
@@ -80,6 +81,7 @@ class StoreFacilitiesUtilizationRequest extends FormRequest
             'qty_sound'     => 'nullable|integer|min:0',
             'qty_led'       => 'nullable|integer|min:0',
             'venue_others'  => 'nullable|string|max:255',
+            ...\App\Models\FormSubmission::OTHER_EQUIPMENT_RULES,
 
             // Noted by (signatory)
             'noted_signatory_id' => 'nullable|string',

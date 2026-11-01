@@ -15,14 +15,14 @@
         </div>
         <div class="pk-hero-actions">
             <a href="{{ route('admin.facilities.index') }}" class="pk-btn-ghost">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-                All facilities
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+                Back
             </a>
         </div>
     </section>
 
     <div class="facform">
-        <form method="POST" action="{{ route('admin.facilities.store') }}" class="facform-card">
+        <form method="POST" action="{{ route('admin.facilities.store') }}" class="facform-card" enctype="multipart/form-data">
             @csrf
 
             <div class="facform-step">
@@ -70,8 +70,10 @@
                 </div>
             </div>
 
+            @include('admin.facilities.partials.photo-field', ['num' => '03', 'photo' => null, 'hasUpload' => false])
+
             <div class="facform-step">
-                <span class="facform-num">03</span>
+                <span class="facform-num">04</span>
                 <div>
                     <h2>Description</h2>
                     <p>Capacity, equipment, or anything requesters should know.</p>
@@ -84,7 +86,7 @@
             </div>
 
             <div class="facform-step">
-                <span class="facform-num">04</span>
+                <span class="facform-num">05</span>
                 <div>
                     <h2>Availability</h2>
                     <p>Whether the venue can be booked right now.</p>
@@ -116,7 +118,6 @@
             </div>
 
             <div class="facform-actions">
-                <a href="{{ route('admin.facilities.index') }}" class="pk-btn-outline">Cancel</a>
                 <button type="submit" class="pk-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
                     Create Facility
@@ -128,7 +129,8 @@
             <p class="facform-preview-label">Live preview</p>
             <div class="facform-preview">
                 <div class="facform-preview-media">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"/></svg>
+                    <img id="pv-photo" alt="" hidden>
+                    <svg id="pv-photo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01"/></svg>
                     <span class="pk-tag" id="pv-owner">Owner</span>
                     <span class="pk-pill is-good" id="pv-status">Available</span>
                 </div>
@@ -139,7 +141,7 @@
                 </div>
             </div>
             <div class="facform-tip">
-                <strong>Tip:</strong> fields marked <span class="pk-req u-text-danger">*</span> are required. Details can be changed later from <em>All facilities → Edit</em>.
+                <strong>Tip:</strong> fields marked <span class="pk-req u-text-danger">*</span> are required. Details and photo can be changed later from <em>All facilities → Edit</em>.
             </div>
         </aside>
     </div>

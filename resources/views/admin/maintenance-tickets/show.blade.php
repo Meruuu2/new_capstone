@@ -9,7 +9,7 @@
         'pending'  => ['Pending',  'is-warn'],
         'ongoing'  => ['Ongoing',  'is-info'],
         'success'  => ['Success',  'is-good'],
-        'failed'   => ['Failed',   'is-bad'],
+        'replacement' => ['Replacement', 'is-bad'],
     ];
     [$statusLabel, $statusTone] = $statusMeta[$ticket->status] ?? [ucfirst(str_replace('_', ' ', (string) $ticket->status)), 'is-neutral'];
     $sentAt       = $ticket->requested_at ?? $ticket->created_at;
@@ -135,16 +135,21 @@
                     <label for="status" class="pk-label">Current status <span class="pk-req">*</span></label>
                     <select id="status" name="status" required class="pk-input">
                         <option value="notified" disabled @selected($ticket->status === 'notified')>Notified</option>
-                        @foreach (['pending' => 'Pending', 'ongoing' => 'Ongoing', 'success' => 'Success', 'failed' => 'Failed'] as $value => $label)
+                        @foreach (['pending' => 'Pending', 'ongoing' => 'Ongoing', 'success' => 'Success', 'replacement' => 'Replacement'] as $value => $label)
                             <option value="{{ $value }}" @selected(old('status', $ticket->status) === $value)>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>
 
+                @php $isReplacement = old('status', $ticket->status) === 'replacement'; @endphp
                 <div class="pk-field">
-                    <label for="admin_remarks" class="pk-label">Update for sender</label>
-                    <textarea id="admin_remarks" name="admin_remarks" rows="5" maxlength="5000" class="pk-input" placeholder="e.g. Technician scheduled for Monday morning.">{{ old('admin_remarks', $ticket->admin_remarks) }}</textarea>
-                    <p class="pk-help">Shown to the sender on their request page.</p>
+                    <label for="admin_remarks" class="pk-label">
+                        <span data-remarks-label>{{ $isReplacement ? 'Reason for replacement' : 'Update for sender' }}</span>
+                        <span class="pk-req" data-remarks-req @if (! $isReplacement) hidden @endif>*</span>
+                    </label>
+                    <textarea id="admin_remarks" name="admin_remarks" rows="5" maxlength="5000" class="pk-input" @required($isReplacement)
+                        placeholder="{{ $isReplacement ? 'e.g. The compressor is burnt out and the unit is past repair; a new aircon unit is needed.' : 'e.g. Technician scheduled for Monday morning.' }}">{{ old('admin_remarks', $ticket->admin_remarks) }}</textarea>
+                    <p class="pk-help" data-remarks-help>{{ $isReplacement ? 'Required. Explain why it can\'t be repaired and what needs to be replaced. Shown to the sender.' : 'Shown to the sender on their request page.' }}</p>
                 </div>
 
                 <div class="pk-form-actions">
@@ -167,4 +172,24 @@
     .mtd-form textarea.pk-input { resize: vertical; min-height: 120px; }
     .mtd-form .pk-form-actions { padding-top: 16px; }
 </style>
+
+<script>
+    // Replacement needs a reason: swap the remarks label/help and make it required
+    (function () {
+        const status = document.getElementById('status');
+        const box = document.getElementById('admin_remarks');
+        if (!status || !box) return;
+        const label = document.querySelector('[data-remarks-label]');
+        const req = document.querySelector('[data-remarks-req]');
+        const help = document.querySelector('[data-remarks-help]');
+        status.addEventListener('change', function () {
+            const on = status.value === 'replacement';
+            box.required = on;
+            req.hidden = !on;
+            label.textContent = on ? 'Reason for replacement' : 'Update for sender';
+            box.placeholder = on ? 'e.g. The compressor is burnt out and the unit is past repair; a new aircon unit is needed.' : 'e.g. Technician scheduled for Monday morning.';
+            help.textContent = on ? 'Required. Explain why it can\'t be repaired and what needs to be replaced. Shown to the sender.' : 'Shown to the sender on their request page.';
+        });
+    })();
+</script>
 @endsection

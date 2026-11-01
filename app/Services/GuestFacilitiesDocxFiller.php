@@ -64,7 +64,7 @@ class GuestFacilitiesDocxFiller
         $this->appendCellLabel($document, $xpath, $fieldRows[3], 2, 'Time:', $this->formatTimeRange($data['time_range']));
 
         $purpose = trim((string) $data['purpose']);
-        $equipment = $this->formatEquipment($data['equipment']);
+        $equipment = $this->formatEquipment($data['equipment'], $data['equipment_others'] ?? []);
         if ($equipment !== '') {
             $purpose .= ' | Equipment requested: ' . $equipment;
         }
@@ -217,7 +217,7 @@ class GuestFacilitiesDocxFiller
         return date('g:i A', strtotime($range['start'])) . ' - ' . date('g:i A', strtotime($range['end']));
     }
 
-    private function formatEquipment(array $equipment): string
+    private function formatEquipment(array $equipment, array $others = []): string
     {
         $labels = [
             'monobloc_chair' => 'Monobloc chairs',
@@ -233,6 +233,11 @@ class GuestFacilitiesDocxFiller
             $quantity = (int) ($equipment[$key] ?? 0);
             if ($quantity > 0) {
                 $items[] = $quantity . ' ' . $label;
+            }
+        }
+        foreach ($others as $row) {
+            if (! empty($row['name'])) {
+                $items[] = (int) ($row['qty'] ?? 1) . ' ' . $row['name'];
             }
         }
 

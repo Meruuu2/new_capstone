@@ -16,6 +16,7 @@ class Facility extends Model
         'owner_college',
         'college_id',
         'description',
+        'image_path',
         'is_active',
         'availability_status',
     ];
@@ -23,6 +24,36 @@ class Facility extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /** Bundled photos for the original venues, matched on the facility name. */
+    private const BUNDLED_PHOTOS = [
+        'busalian'   => 'busalian-hall.jpg',
+        'paghiusa'   => 'paghiusa-hall.jpg',
+        'tiripunan'  => 'tiripunan-hall.jpg',
+        'grandstand' => 'grand-stand.jpg',
+        'trackoval'  => 'grand-stand.jpg',
+        'newavr'     => 'new-avr.jpg',
+        'avr'        => 'avr.jpg',
+    ];
+
+    /**
+     * Uploaded photo if there is one, otherwise the bundled photo for known venues, otherwise null.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if ($this->image_path) {
+            return asset('storage/' . $this->image_path);
+        }
+
+        $key = preg_replace('/[^a-z]/', '', strtolower((string) $this->name));
+        foreach (self::BUNDLED_PHOTOS as $needle => $file) {
+            if (str_contains($key, $needle)) {
+                return asset('img/facilities/' . $file);
+            }
+        }
+
+        return null;
+    }
  
     /**
      * Determine if this facility is part of the seeded core UA list.

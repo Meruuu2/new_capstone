@@ -133,9 +133,9 @@
                             <span id="vb-day-text">Pick a date in step 1 to see booked times</span>
                         </span>
                         <span class="vb-key" aria-hidden="true">
-                            <span><i class="u-bg-success"></i>Free</span>
-                            <span><i class="u-bg-warn"></i>Partly booked</span>
-                            <span><i class="u-bg-danger"></i>Fully booked</span>
+                            <span><i class="u-bg-success"></i>Available</span>
+                            <span><i class="u-bg-warn"></i>Partly booked · AM or PM only</span>
+                            <span><i class="u-bg-danger"></i>Fully booked · whole day</span>
                         </span>
                     </div>
                     <div class="vb-grid" role="group" aria-label="Venues to be utilized">
@@ -147,6 +147,8 @@
                             <div class="vb-card" data-name="{{ $facility->name }}">
                                 <input type="checkbox" name="facility_ids[]" id="venue-{{ $facility->id }}" value="{{ $facility->id }}"
                                        data-name="{{ $facility->name }}"
+                                       data-capacity="{{ \App\Support\VenueRates::seatingCapacityFor($facility->name) }}"
+                                       data-equipment="{{ json_encode(\App\Support\VenueRates::suggestedEquipmentFor($facility->name)) }}"
                                        {{ in_array($facility->id, $oldVenues, true) ? 'checked' : '' }}
                                        {{ $isUnavailable ? 'disabled' : '' }}>
                                 <label for="venue-{{ $facility->id }}">
@@ -199,6 +201,8 @@
                             <textarea name="purpose" id="purpose" rows="3" class="pk-input" required aria-describedby="purpose_help">{{ old('purpose') }}</textarea>
                             <p class="pk-help" id="purpose_help">What the event is, in a sentence or two.</p>
                         </div>
+
+                        @include('partials.number-of-persons')
                     </div>
                 </div>
             </div>
@@ -208,7 +212,7 @@
                 <span class="pk-step-num">04</span>
                 <div>
                     <h2>Facilities / Equipment to be used</h2>
-                    <p class="pk-step-intro">Tap + to add what you need. Leave the rest at 0.</p>
+                    <p class="pk-step-intro">Suggested from the venues you pick; chairs follow the number of persons. Tap + or − to adjust.</p>
                     <div class="eq-bar">
                         <div class="eq-total" aria-live="polite"><strong id="eq-total">0</strong><span id="eq-total-text">items selected</span></div>
                         <div class="eq-quick">
@@ -238,6 +242,7 @@
                             </div>
                         @endforeach
                     </div>
+                    @include('partials.equipment-others')
                 </div>
             </div>
 
@@ -262,6 +267,7 @@
                     <div class="pk-ticket-row"><span>Venues</span><strong id="sum-venues" class="is-empty">None selected</strong></div>
                     <div class="pk-ticket-row"><span>Requester</span><strong id="sum-requester" class="is-empty">—</strong></div>
                     <div class="pk-ticket-row"><span>Purpose</span><strong id="sum-purpose" class="is-empty">—</strong></div>
+                    <div class="pk-ticket-row"><span>Persons</span><strong id="sum-persons" class="is-empty">—</strong></div>
                     <div class="pk-ticket-row"><span>Equipment</span><strong id="sum-equip" class="is-empty">None</strong></div>
                 </div>
             </div>
@@ -270,6 +276,7 @@
 </div>
 
 @include('admin.bookings.partials.booking-picker-script')
+@include('partials.venue-equipment-suggest')
 <script>
 (function () {
     const form = document.getElementById('direct-form');
@@ -297,8 +304,9 @@
         setText($('sum-requester'), $('requester_name').value.trim(), '—');
         const purpose = $('purpose').value.trim();
         setText($('sum-purpose'), purpose.length > 90 ? purpose.slice(0, 90) + '…' : purpose, '—');
+        setText($('sum-persons'), $('number_of_persons').value, '—');
         const equip = [...form.querySelectorAll('.eq-count')]
-            .filter(i => parseInt(i.value || '0', 10) > 0)
+            .filter(i => parseInt(i.value || '0', 10) > 0 && i.dataset.label)
             .map(i => i.value + ' × ' + i.dataset.label);
         setText($('sum-equip'), equip.join(', '), 'None');
         if (venueBoxes().some(b => b.checked)) $('venue-error').classList.remove('is-shown');

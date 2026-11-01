@@ -2,27 +2,6 @@
 
 @section('admin-content')
 @include('layouts.partials.page-kit')
-@php
-    // Photo per known venue (matched on the facility name); the rest get an icon placeholder.
-    $facilityPhotos = [
-        'busalian'  => 'busalian-hall.jpg',
-        'paghiusa'  => 'paghiusa-hall.jpg',
-        'tiripunan' => 'tiripunan-hall.jpg',
-        'grandstand'=> 'grand-stand.jpg',
-        'trackoval' => 'grand-stand.jpg',
-        'newavr'    => 'new-avr.jpg',
-        'avr'       => 'avr.jpg',
-    ];
-    $photoFor = function ($name) use ($facilityPhotos) {
-        $key = preg_replace('/[^a-z]/', '', strtolower((string) $name));
-        foreach ($facilityPhotos as $needle => $file) {
-            if (str_contains($key, $needle)) {
-                return asset('img/facilities/' . $file);
-            }
-        }
-        return null;
-    };
-@endphp
 
 <div class="pk-page fac-page" id="admin-facilities-page">
     <section class="pk-hero" style="--pk-img: url('{{ asset('img/facilities/busalian-hall.jpg') }}')">
@@ -70,7 +49,7 @@
                         'unavailable' => 'is-bad',
                         default       => 'is-neutral',
                     };
-                    $photo = $photoFor($facility->name);
+                    $photo = $facility->photo_url;
                 @endphp
                 <article class="fac-card {{ $facility->is_active === false ? 'fac-inactive' : '' }}">
                     <div class="fac-media">

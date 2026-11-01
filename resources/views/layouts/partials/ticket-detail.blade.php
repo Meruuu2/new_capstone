@@ -8,7 +8,7 @@
         'pending'  => ['Waiting to start',  'is-warn'],
         'ongoing'  => ['In progress',       'is-info'],
         'success'  => ['Completed',         'is-good'],
-        'failed'   => ['Not completed',     'is-bad'],
+        'replacement' => ['Needs replacement', 'is-bad'],
     ];
     [$statusLabel, $statusTone] = $statusMeta[$ticket->status] ?? [ucfirst(str_replace('_', ' ', (string) $ticket->status)), 'is-neutral'];
 
@@ -77,7 +77,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
                 <div>
                     <strong>Repair {{ strtolower($statusLabel) }}</strong>
-                    <span>{{ $ticket->status === 'failed' ? 'The repair couldn\'t be completed. GSU will contact you about next steps, or you can send a new request.' : 'This request is no longer active.' }}</span>
+                    <span>{{ $ticket->status === 'replacement' ? 'The item couldn\'t be repaired and needs to be replaced. See the reason from GSU below.' : 'This request is no longer active.' }}</span>
                 </div>
             </div>
         @endif
@@ -131,7 +131,7 @@
         <div class="rqd-side">
             {{-- Administrator update --}}
             <section class="rqd-card">
-                <h2 class="rqd-card-title">Administrator update</h2>
+                <h2 class="rqd-card-title">{{ $ticket->status === 'replacement' ? 'Reason for replacement' : 'Administrator update' }}</h2>
                 @if ($ticket->admin_remarks)
                     <p class="rqd-pre rqd-remark">{{ $ticket->admin_remarks }}</p>
                 @else

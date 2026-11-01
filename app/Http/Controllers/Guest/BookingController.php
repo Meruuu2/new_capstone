@@ -13,12 +13,13 @@ class BookingController extends Controller
 {
     use GroupsBookingsByDay;
 
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with('facilities')
-            ->where('requester_id', auth()->id())
-            ->latest('start_time')
-            ->paginate(15);
+        $bookings = $this->paginateReservations(
+            Booking::with('facilities')->where('requester_id', auth()->id()),
+            $request,
+            15
+        );
 
         return view('guest.bookings.index', compact('bookings'));
     }

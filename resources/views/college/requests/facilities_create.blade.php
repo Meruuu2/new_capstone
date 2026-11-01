@@ -164,9 +164,9 @@
                             <span id="vb-day-text">Pick a date in step 1 to see booked times</span>
                         </span>
                         <span class="vb-key" aria-hidden="true">
-                            <span><i class="u-bg-success"></i>Free</span>
-                            <span><i class="u-bg-warn"></i>Partly booked</span>
-                            <span><i class="u-bg-danger"></i>Fully booked</span>
+                            <span><i class="u-bg-success"></i>Available</span>
+                            <span><i class="u-bg-warn"></i>Partly booked · AM or PM only</span>
+                            <span><i class="u-bg-danger"></i>Fully booked · whole day</span>
                         </span>
                     </div>
                     @php $selectedFacilityIds = array_map('intval', (array) old('facility_ids', old('facility_id') ? [old('facility_id')] : [])); @endphp
@@ -181,6 +181,8 @@
                             <div class="vb-card" data-name="{{ $facility->name }}">
                                 <input type="checkbox" name="facility_ids[]" id="venue-{{ $facility->id }}" value="{{ $facility->id }}"
                                        data-name="{{ $facility->name }}"
+                                       data-capacity="{{ \App\Support\VenueRates::seatingCapacityFor($facility->name) }}"
+                                       data-equipment="{{ json_encode(\App\Support\VenueRates::suggestedEquipmentFor($facility->name)) }}"
                                        {{ in_array($facility->id, $selectedFacilityIds, true) ? 'checked' : '' }}
                                        {{ $isUnavailable ? 'disabled' : '' }}>
                                 <label for="venue-{{ $facility->id }}">
@@ -234,6 +236,8 @@
                         </div>
                     </div>
 
+                    @include('partials.number-of-persons')
+
                     <div class="pp-block">
                         <p class="pp-title"><span class="pp-title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Who will note it?</p>
                         <p class="pp-sub">Pick who signs as "Noted by". Your team's officers are listed first. You can skip this.</p>
@@ -286,7 +290,7 @@
                 <span class="pk-step-num">04</span>
                 <div>
                     <h2>Facilities / Equipment to be used</h2>
-                    <p class="pk-step-intro">Tap + to add what you need. Leave the rest at 0.</p>
+                    <p class="pk-step-intro">Suggested from the venues you pick; chairs follow the number of persons. Tap + or − to adjust.</p>
                     <div class="eq-bar">
                         <div class="eq-total" aria-live="polite"><strong id="eq-total">0</strong><span id="eq-total-text">items selected</span></div>
                         <div class="eq-quick">
@@ -316,6 +320,7 @@
                             </div>
                         @endforeach
                     </div>
+                    @include('partials.equipment-others')
                 </div>
             </div>
 
@@ -359,6 +364,7 @@
                 <div class="pk-ticket-body">
                     <div class="pk-ticket-row"><span>Venue</span><strong id="sum-venue" class="is-empty">None selected</strong></div>
                     <div class="pk-ticket-row"><span>Purpose</span><strong id="sum-purpose" class="is-empty">—</strong></div>
+                    <div class="pk-ticket-row"><span>Persons</span><strong id="sum-persons" class="is-empty">—</strong></div>
                     <div class="pk-ticket-row"><span>Equipment</span><strong id="sum-equip" class="is-empty">None</strong></div>
                 </div>
             </div>
@@ -520,8 +526,11 @@ function adjustQty(fieldId, delta) {
                 const len = b - a, hrs = Math.round(len / 30) / 2;
                 it.hours = hrs + (hrs === 1 ? ' hr' : ' hrs');
                 it.until = clock12(it.end);
-                it.whole = len >= 360;
-                it.span = it.whole ? 'Whole day' : 'Half day' + (b <= 780 ? ' · Morning' : (a >= 720 ? ' · Afternoon' : ''));
+                // Morning (AM) = starts before 12 PM; afternoon (PM) = runs past 1 PM (12–1 PM is slack). Both halves = whole day.
+                it.am = a < 720;
+                it.pm = b > 780 || !it.am;
+                it.whole = it.am && it.pm;
+                it.span = it.whole ? 'Whole day' : (it.am ? 'Half day · Morning' : 'Half day · Afternoon');
             }
             return it;
         }
@@ -791,11 +800,20 @@ function adjustQty(fieldId, delta) {
                 } else {
                     slotsBox.innerHTML = mine.map(it => window.dpBookingHtml(it, { date: multi ? shortDate(it.date) : '' })).join('');
                 }
-                const label = !current.start || !mine.length ? 'Available'
-                    : (multi ? 'Booked ' + bookedDays + ' of ' + current.days.length + ' days' : (mine.some(it => it.whole) ? 'Booked whole day' : 'Partly booked'));
+                // Per day: AM and PM both taken = fully booked; only one half taken = partly booked
+                const halves = (list) => ({ am: list.some(it => it.am), pm: list.some(it => it.pm) });
+                const fullDays = current.days.filter(d => { const h = halves(mine.filter(it => it.date === d.date)); return h.am && h.pm; }).length;
+                const day = halves(mine);
+                let label, tone;
+                if (!current.start || !mine.length) { label = 'Available'; tone = 'is-good'; }
+                else if (multi) {
+                    label = (fullDays ? 'Fully booked ' + fullDays : 'Partly booked ' + bookedDays) + ' of ' + current.days.length + ' days';
+                    tone = fullDays ? 'is-bad' : 'is-warn';
+                }
+                else if (day.am && day.pm) { label = 'Fully booked · whole day'; tone = 'is-bad'; }
+                else { label = day.am ? 'Partly booked · PM free' : 'Partly booked · AM free'; tone = 'is-warn'; }
                 status.textContent = label;
-                const fullyTaken = !multi && mine.some(it => it.whole);
-                status.className = 'pk-pill vb-status ' + (!current.start || !mine.length ? 'is-good' : (fullyTaken ? 'is-bad' : 'is-warn'));
+                status.className = 'pk-pill vb-status ' + tone;
                 // Flag venues whose bookings overlap the start/end time on any chosen day
                 const clash = start !== null && end !== null && mine.some(it => { const [a, b] = rangeOf(it.time); return a !== null && b !== null && a < end && b > start; });
                 card.classList.toggle('is-clash', clash);
@@ -828,8 +846,9 @@ function adjustQty(fieldId, delta) {
         setText($('sum-venue'), venues.join(', '), 'None selected');
         const purpose = $('purpose').value.trim();
         setText($('sum-purpose'), purpose.length > 90 ? purpose.slice(0, 90) + '…' : purpose, '—');
+        setText($('sum-persons'), $('number_of_persons').value, '—');
         const equip = Array.from(form.querySelectorAll('.eq-count'))
-            .filter(i => parseInt(i.value || '0', 10) > 0)
+            .filter(i => parseInt(i.value || '0', 10) > 0 && i.dataset.label)
             .map(i => i.value + ' × ' + i.dataset.label);
         setText($('sum-equip'), equip.join(', '), 'None');
     }
@@ -849,5 +868,6 @@ function adjustQty(fieldId, delta) {
     render();
 })();
 </script>
+@include('partials.venue-equipment-suggest')
 @include('partials.facility-time-availability')
 @endsection

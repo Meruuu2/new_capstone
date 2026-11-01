@@ -134,6 +134,10 @@
                             $requesterName = optional($booking->requester)->name ?? 'Unknown';
                             $initials = collect(preg_split('/\s+/', trim($requesterName)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('');
                             $submissionId = $booking->additional_details['form_submission_id'] ?? null;
+                            $days = $booking->days ?? collect([$booking]);
+                            $lastDay = $days->last();
+                            $dayCount = $days->count();
+                            $statuses = $days->pluck('status')->unique()->values();
                         @endphp
                         <tr>
                             <td>
@@ -144,8 +148,14 @@
                                             <span class="rsv-date-day">{{ $booking->start_time->format('d') }}</span>
                                         </span>
                                         <span>
-                                            <span class="rsv-time">{{ $booking->start_time->format('H:i') }} – {{ $booking->end_time?->format('H:i') }}</span>
-                                            <span class="rsv-year">{{ $booking->start_time->format('M d, Y') }}</span>
+                                            @if ($dayCount > 1)
+                                                {{-- Multi-day: the range is the headline, so it reads until when the event runs --}}
+                                                <span class="rsv-time">{{ $booking->start_time->format($booking->start_time->year === $lastDay->start_time->year ? 'M j' : 'M j, Y') }} – {{ $lastDay->start_time->format('M j, Y') }}</span>
+                                                <span class="rsv-year">{{ $booking->start_time->format('H:i') }} – {{ $booking->end_time?->format('H:i') }} daily</span>
+                                            @else
+                                                <span class="rsv-time">{{ $booking->start_time->format('H:i') }} – {{ $booking->end_time?->format('H:i') }}</span>
+                                                <span class="rsv-year">{{ $booking->start_time->format('M d, Y') }}</span>
+                                            @endif
                                         </span>
                                     </div>
                                 @else
@@ -158,7 +168,8 @@
                                     <span class="pk-avatar" aria-hidden="true">{{ $initials ?: '?' }}</span>
                                     <span>
                                         <span class="pk-strong">{{ $requesterName }}</span>
-                                        <span class="rsv-sub">{{ $booking->requester_type }} – {{ $booking->requester_unit ?? 'N/A' }}</span>
+                                        @php $guestName = $booking->requester_type === 'guest' ? $guestNames->get($submissionId) : null; @endphp
+                                        <span class="rsv-sub">{{ $booking->requester_type }} – @if ($guestName)<span class="rsv-guest-name">{{ $guestName }}</span> · @endif{{ $booking->requester_unit ?? 'N/A' }}</span>
                                     </span>
                                 </span>
                             </td>
@@ -173,7 +184,13 @@
                                     Unknown
                                 @endif
                             </td>
-                            <td><span class="pk-pill {{ $bookingTone($booking->status) }}">{{ ucfirst($booking->status) }}</span></td>
+                            <td>
+                                <span class="rsv-statuses">
+                                    @foreach ($statuses as $status)
+                                        <span class="pk-pill {{ $bookingTone($status) }}">{{ ucfirst($status) }}@if ($statuses->count() > 1) ({{ $days->where('status', $status)->count() }})@endif</span>
+                                    @endforeach
+                                </span>
+                            </td>
                             <td>
                                 <span class="rsv-actions">
                                     <a href="{{ route('admin.bookings.edit', $booking) }}" class="pk-row-link">

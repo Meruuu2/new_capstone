@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MonthlyRecordsController extends Controller
 {
-    private const REPORTABLE_BOOKING_STATUSES = ['reserved', 'rescheduled', 'completed'];
+    public const REPORTABLE_BOOKING_STATUSES = ['reserved', 'rescheduled', 'completed'];
 
     public function index(Request $request)
     {
@@ -85,6 +85,24 @@ class MonthlyRecordsController extends Controller
         }
         $allVenues = $allVenues->sortByDesc(fn ($count) => $count);
 
+        // Occupancy: booked hours (clipped to this month) out of the month's calendar hours
+        $monthEndExclusive = $startDate->copy()->addMonth();
+        $calendarHours = $startDate->diffInSeconds($monthEndExclusive) / 3600;
+        $bookedHours = [];
+        foreach ($bookings as $booking) {
+            $from = $booking->start_time->max($startDate);
+            $to = $booking->end_time->min($monthEndExclusive);
+            $hours = $from->lt($to) ? $from->diffInSeconds($to) / 3600 : 0;
+            foreach ($booking->facilities as $facility) {
+                $bookedHours[$facility->name] = ($bookedHours[$facility->name] ?? 0) + $hours;
+            }
+        }
+        $occupancy = $allVenues->keys()->map(fn ($name) => [
+            'name' => $name,
+            'booked_hours' => round($bookedHours[$name] ?? 0, 2),
+            'utilization' => $calendarHours > 0 ? round(($bookedHours[$name] ?? 0) / $calendarHours * 100, 2) : 0,
+        ])->sortByDesc('booked_hours')->values();
+
         // Calculate total rental fees
         $totalRentalFees = $records->sum('rental_fee');
 
@@ -116,7 +134,9 @@ class MonthlyRecordsController extends Controller
             'totalRentalFees',
             'month',
             'year',
-            'monthlyTrend'
+            'monthlyTrend',
+            'occupancy',
+            'calendarHours'
         ));
     }
 

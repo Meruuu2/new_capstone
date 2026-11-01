@@ -128,6 +128,7 @@ class BookingService
                 $details = [
                     'form_submission_id' => $submission->id,
                     'equipment'          => $payload['equipment'] ?? [],
+                    'equipment_others'   => $payload['equipment_others'] ?? [],
                 ];
                 if ($dayCount > 1) {
                     $details['multi_day'] = ['day' => $i + 1, 'of' => $dayCount];
@@ -232,6 +233,7 @@ class BookingService
                 'purpose'            => $data['purpose'],
                 'additional_details' => [
                     'equipment' => $equipment,
+                    'equipment_others' => FormSubmission::otherEquipmentFrom($data),
                     'requester_name' => $data['requester_name'],
                 ],
                 'requested_at'       => now(),
@@ -261,7 +263,9 @@ class BookingService
                     'facility_ids'    => $facilityIds,
                     'facility_names'  => $facilities->pluck('name')->all(),
                     'purpose'         => $data['purpose'],
+                    'number_of_persons' => isset($data['number_of_persons']) ? (int) $data['number_of_persons'] : null,
                     'equipment'       => $equipment,
+                    'equipment_others' => FormSubmission::otherEquipmentFrom($data),
                     'approved_datetime' => now()->format('M d, Y h:i A'),
                     'is_direct_booking' => true,
                 ],

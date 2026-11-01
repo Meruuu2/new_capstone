@@ -44,9 +44,9 @@ class FormSubmissionController extends Controller
         }
 
         // Filter by month (date_activity is stored as YYYY-MM-DD in payload)
-        if ($request->filled('month')) {
-            $month = $request->input('month'); // format: YYYY-MM
-            $query->whereRaw('JSON_EXTRACT(payload, \'$.date_activity\') LIKE ?', [$month . '%']);
+        // JSON_UNQUOTE: JSON_EXTRACT alone returns "2026-12-05" with its quotes, so the prefix match never hit
+        if (preg_match('/^\d{4}-\d{2}$/', (string) $request->input('month'))) {
+            $query->whereRaw('JSON_UNQUOTE(JSON_EXTRACT(payload, \'$.date_activity\')) LIKE ?', [$request->input('month') . '%']);
         }
 
         // Search by control number
@@ -59,7 +59,8 @@ class FormSubmissionController extends Controller
         // Requests that still need a decision come first (pending, then payment to verify), then the rest; newest first in each group
         $submissions = $query->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'pending_payment' THEN 1 WHEN 'approved' THEN 2 WHEN 'reserved' THEN 3 WHEN 'disapproved' THEN 4 WHEN 'cancelled' THEN 5 ELSE 6 END")
             ->orderByDesc('created_at')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         // Get available facilities for filter dropdown
         $facilities = Facility::where('is_active', true)

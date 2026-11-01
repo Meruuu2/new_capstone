@@ -33,9 +33,7 @@
 
     $venueTitle = $facilities->isNotEmpty() ? $facilities->pluck('name')->join(', ') : ($p['facility_name'] ?? 'Facility request');
 
-    $equipLabels = ['monobloc_chair' => 'Monobloc chair', 'table' => 'Table', 'electric_fan' => 'Electric fan', 'rostrum' => 'Rostrum', 'flag' => 'Flag & school color', 'sound' => 'Sound system', 'led' => 'LED wall'];
-    $equipment = collect($p['equipment'] ?? [])->filter(fn ($q) => (int) $q > 0)
-        ->map(fn ($q, $k) => ['label' => $equipLabels[$k] ?? ucfirst(str_replace('_', ' ', $k)), 'qty' => (int) $q]);
+    $equipment = \App\Models\FormSubmission::equipmentItems($p);
 
     $isGuest       = !empty($submission->payload['client_name']);
     $requesterName = ($submission->payload['client_name'] ?? null) ?: (optional($submission->requester)->name ?? 'Unknown');
@@ -187,6 +185,12 @@
                         <dt>Purpose</dt>
                         <dd>{{ $p['purpose'] ?? '—' }}</dd>
                     </div>
+                    @if (!empty($p['number_of_persons']))
+                    <div class="rqd-row">
+                        <dt>Number of persons</dt>
+                        <dd>{{ number_format($p['number_of_persons']) }}</dd>
+                    </div>
+                    @endif
                     <div class="rqd-row">
                         <dt>Date requested</dt>
                         <dd>{{ $p['date_request'] ?? '—' }}</dd>

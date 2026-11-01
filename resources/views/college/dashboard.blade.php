@@ -21,7 +21,7 @@
         ['label' => 'Notified',    'count' => $maintenanceStats['notified'] ?? 0],
         ['label' => 'Ongoing',     'count' => $maintenanceStats['ongoing'] ?? 0],
         ['label' => 'Success',     'count' => $maintenanceStats['success'] ?? 0],
-        ['label' => 'Failed',      'count' => $maintenanceStats['failed'] ?? 0],
+        ['label' => 'Replacement', 'count' => $maintenanceStats['replacement'] ?? 0],
     ];
     $repairMax = max(1, collect($repairRows)->max('count'));
 @endphp

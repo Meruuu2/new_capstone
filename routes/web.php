@@ -50,6 +50,9 @@ Route::post('/request-facility', [\App\Http\Controllers\PublicFacilityRequestCon
     ->name('public.request.store');
 Route::get('/request-facility/submitted/{submission}', [\App\Http\Controllers\PublicFacilityRequestController::class, 'submitted'])
     ->name('public.request.submitted');
+Route::get('/request-ticket/{submission}/download', [\App\Http\Controllers\RequestTicketController::class, 'download'])
+    ->middleware(['signed', 'throttle:30,1'])
+    ->name('request-ticket.download');
 Route::get('/forms/facilities/{submission}/payment-receipt', [\App\Http\Controllers\PaymentReceiptController::class, 'show'])
     ->middleware('throttle:30,1')
     ->name('payment-receipts.show');
@@ -81,11 +84,13 @@ Route::get('/healthz', function () {
     ]);
 });
 
-// Admin
-Route::middleware(['auth', 'role:admin'])->group(function () {
+// GSU portal dashboard: one page, sections follow the access level (admin, facilities, repair)
+Route::middleware(['auth', 'role:admin,facility_staff,maintenance_staff'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
+});
 
+// Repair & maintenance: admins and repair staff
+Route::middleware(['auth', 'role:admin,maintenance_staff'])->group(function () {
     Route::get('/admin/maintenance-tickets', [\App\Http\Controllers\Admin\MaintenanceTicketController::class, 'index'])
         ->name('admin.maintenance-tickets.index');
     Route::get('/admin/maintenance-tickets/{ticket}', [\App\Http\Controllers\Admin\MaintenanceTicketController::class, 'show'])
@@ -99,6 +104,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->middleware('throttle:30,1')
         ->name('admin.maintenance-tickets.messages.store');
 
+    Route::get('/admin/repair-records', [\App\Http\Controllers\Admin\MaintenanceTicketController::class, 'records'])
+        ->name('admin.repair-records.index');
+
+    // Blank GSU repair form
+    Route::get('/forms/repair', [GsuFormController::class, 'showRepair'])->name('forms.repair.show');
+    Route::post('/forms/repair/download', [GsuFormController::class, 'downloadRepair'])->name('forms.repair.download');
+});
+
+// Facilities, requests and reservations: admins and facility staff
+Route::middleware(['auth', 'role:admin,facility_staff'])->group(function () {
     // Facilities
     Route::get('/admin/facilities', [AdminFacilityController::class, 'index'])->name('admin.facilities.index');
     Route::get('/admin/facilities/create', [AdminFacilityController::class, 'create'])->name('admin.facilities.create');
@@ -108,11 +123,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::patch('/admin/facilities/{facility}/deactivate', [AdminFacilityController::class, 'deactivate'])->name('admin.facilities.deactivate');
     Route::patch('/admin/facilities/{facility}/activate', [AdminFacilityController::class, 'activate'])->name('admin.facilities.activate');
 
-    // GSU Forms (accessible by admin/GSU staff)
+    // Blank GSU facilities form
     Route::get('/forms/facilities', [GsuFormController::class, 'showFacilities'])->name('forms.facilities.show');
     Route::post('/forms/facilities/download', [GsuFormController::class, 'downloadFacilities'])->name('forms.facilities.download');
-    Route::get('/forms/repair', [GsuFormController::class, 'showRepair'])->name('forms.repair.show');
-    Route::post('/forms/repair/download', [GsuFormController::class, 'downloadRepair'])->name('forms.repair.download');
 
     // Facilities form submissions (GSU review)
     Route::get('/admin/forms/facilities', [\App\Http\Controllers\Admin\FormSubmissionController::class, 'index'])
@@ -133,14 +146,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         '/admin/forms/facilities/{submission}/pdf',
         [\App\Http\Controllers\Admin\FacilitiesFormPdfController::class, 'generate']
     )->name('admin.forms.facilities.pdf');
-
-    // User management
-    Route::get('/admin/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
-    Route::get('/admin/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('admin.users.create');
-    Route::post('/admin/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
-    Route::get('/admin/users/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('admin.users.edit');
-    Route::put('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
-    Route::patch('/admin/users/{user}/deactivate', [\App\Http\Controllers\Admin\UserController::class, 'deactivate'])->name('admin.users.deactivate');
 
     // Monthly Records
     Route::get('/admin/monthly-records', [AdminMonthlyRecordsController::class, 'index'])->name('admin.monthly-records.index');
@@ -164,8 +169,24 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.bookings.cancel');
     Route::get('/admin/calendar', [\App\Http\Controllers\Admin\BookingController::class, 'calendar'])
         ->name('admin.calendar');
-    Route::get('/admin/overview', [\App\Http\Controllers\Admin\BookingController::class, 'overview'])
-        ->name('admin.overview');
+    // Monthly overview was merged into Monthly records; keep old links (?month=YYYY-MM) working
+    Route::get('/admin/overview', function (\Illuminate\Http\Request $request) {
+        $period = preg_match('/^(\d{4})-(\d{2})$/', (string) $request->query('month'), $m) ? ['year' => (int) $m[1], 'month' => (int) $m[2]] : [];
+        return redirect()->route('admin.monthly-records.index', $period);
+    })->name('admin.overview');
+});
+
+// Admin only (full GSU access)
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
+
+    // User management
+    Route::get('/admin/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/users/create', [\App\Http\Controllers\Admin\UserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
+    Route::get('/admin/users/{user}/edit', [\App\Http\Controllers\Admin\UserController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
+    Route::patch('/admin/users/{user}/deactivate', [\App\Http\Controllers\Admin\UserController::class, 'deactivate'])->name('admin.users.deactivate');
 });
 
 // College Staff

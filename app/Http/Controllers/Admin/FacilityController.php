@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFacilityRequest;
 use App\Models\Facility;
+use Illuminate\Support\Facades\Storage;
 
 class FacilityController extends Controller
 {
@@ -21,7 +22,13 @@ class FacilityController extends Controller
 
     public function store(StoreFacilityRequest $request)
     {
-        Facility::create($request->validated());
+        $validated = $request->safe()->except(['image', 'remove_image']);
+
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')->store('facilities', 'public');
+        }
+
+        Facility::create($validated);
 
         return redirect()->route('admin.facilities.index')
             ->with('status', 'Facility created successfully.');
@@ -34,7 +41,14 @@ class FacilityController extends Controller
 
     public function update(StoreFacilityRequest $request, Facility $facility)
     {
-        $validated = $request->validated();
+        $validated = $request->safe()->except(['image', 'remove_image']);
+
+        if ($request->hasFile('image') || $request->boolean('remove_image')) {
+            $oldImage = $facility->image_path;
+            $validated['image_path'] = $request->hasFile('image')
+                ? $request->file('image')->store('facilities', 'public')
+                : null;
+        }
 
         if ($facility->isCoreFacility()) {
             unset($validated['owner_type'], $validated['owner_college']);
@@ -46,6 +60,11 @@ class FacilityController extends Controller
 
 
         $facility->update($validated);
+
+        // Delete the replaced file only after the new path is saved.
+        if (! empty($oldImage)) {
+            Storage::disk('public')->delete($oldImage);
+        }
 
         return redirect()->route('admin.facilities.index')
             ->with('status', 'Facility updated successfully.');

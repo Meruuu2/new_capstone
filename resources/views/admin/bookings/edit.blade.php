@@ -185,9 +185,9 @@
                             <span id="vb-day-text">Pick a date in step 1 to see booked times</span>
                         </span>
                         <span class="vb-key" aria-hidden="true">
-                            <span><i class="u-bg-success"></i>Free</span>
-                            <span><i class="u-bg-warn"></i>Partly booked</span>
-                            <span><i class="u-bg-danger"></i>Fully booked</span>
+                            <span><i class="u-bg-success"></i>Available</span>
+                            <span><i class="u-bg-warn"></i>Partly booked · AM or PM only</span>
+                            <span><i class="u-bg-danger"></i>Fully booked · whole day</span>
                         </span>
                     </div>
                     <div class="vb-grid" role="group" aria-label="Venues">
@@ -295,6 +295,7 @@
                             </div>
                         @endforeach
                     </div>
+                    @include('partials.equipment-others', ['others' => $details['equipment_others'] ?? []])
                 </div>
             </div>
 
@@ -455,7 +456,7 @@
         const purpose = $('purpose').value.trim();
         setText($('sum-purpose'), purpose.length > 90 ? purpose.slice(0, 90) + '…' : purpose, '—');
         const equip = [...form.querySelectorAll('.eq-count')]
-            .filter(i => parseInt(i.value || '0', 10) > 0)
+            .filter(i => parseInt(i.value || '0', 10) > 0 && i.dataset.label)
             .map(i => i.value + ' × ' + i.dataset.label);
         setText($('sum-equip'), equip.join(', '), 'None');
 

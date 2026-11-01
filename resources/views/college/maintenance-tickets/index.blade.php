@@ -7,7 +7,7 @@
         'pending' => 'is-warn',
         'ongoing', 'in_progress' => 'is-info',
         'success', 'completed' => 'is-good',
-        'failed', 'rejected' => 'is-bad',
+        'replacement', 'failed', 'rejected' => 'is-bad',
         default => 'is-neutral',
     };
 @endphp
@@ -43,7 +43,7 @@
         </div>
         <div class="ctk-grid">
             @foreach ($tickets as $ticket)
-                @php $closed = in_array($ticket->status, ['success', 'failed', 'completed', 'rejected'], true); @endphp
+                @php $closed = in_array($ticket->status, ['success', 'replacement', 'failed', 'completed', 'rejected'], true); @endphp
                 <article class="ctk {{ $closed ? 'is-closed' : '' }}">
                     <div class="ctk-stub">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3a2 2 0 000-4z"/></svg>

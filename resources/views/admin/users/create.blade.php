@@ -4,7 +4,7 @@
 @include('layouts.partials.page-kit')
 @php
     $roles = [
-        'admin'         => ['label' => 'Admin',              'desc' => 'Full GSU access',          'icon' => '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'],
+        'admin'         => ['label' => 'Admin',              'desc' => 'GSU office team',          'icon' => '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'],
         'college_staff' => ['label' => 'College Staff',      'desc' => 'Books for a college',      'icon' => '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>'],
         'org_staff'     => ['label' => 'Organization Staff', 'desc' => 'Books for an org unit',    'icon' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.5a3.5 3.5 0 010 7M21.5 20a6.5 6.5 0 00-4-6"/>'],
         // Guests no longer get accounts: they request facilities from the public form on the home page
@@ -18,6 +18,17 @@
     }
     // ?role=admin (from "Add admin staff") pre-selects the Admin card
     $currentRole = old('role', $editUser?->role ?? (request('role') === 'admin' ? 'admin' : null));
+    // Facilities and Repair & Maintenance are access levels under Admin, so those accounts open on the Admin card
+    $staffRoles = ['facility_staff', 'maintenance_staff'];
+    $currentAccess = old('admin_access', in_array($currentRole, $staffRoles, true) ? $currentRole : 'full');
+    if (in_array($currentRole, $staffRoles, true)) {
+        $currentRole = 'admin';
+    }
+    $adminAccess = [
+        'full'              => ['label' => 'Full GSU access',      'desc' => 'Every page, users and audit trail'],
+        'facility_staff'    => ['label' => 'Facilities',           'desc' => 'Facilities, requests and reservations'],
+        'maintenance_staff' => ['label' => 'Repair & Maintenance', 'desc' => 'Repair requests and repair records'],
+    ];
     $adminPositions = ['GSU Head', 'Administrative Officer', 'Facilities Coordinator', 'Staff'];
 @endphp
 
@@ -129,11 +140,23 @@
                         @endforeach
                     </div>
 
-                    {{-- Admin team: title within GSU (everyone with the Admin role has full access) --}}
+                    {{-- Admin team: access level and title within GSU --}}
                     <div id="admin-field" class="pk-field ucf-unit hidden">
+                        <fieldset class="ucf-access">
+                            <legend class="pk-label">Access level</legend>
+                            <div class="ucf-access-opts">
+                                @foreach ($adminAccess as $value => $opt)
+                                    <label class="ucf-access-opt">
+                                        <input type="radio" name="admin_access" value="{{ $value }}" {{ $currentAccess === $value ? 'checked' : '' }} {{ $isSelf && $value !== 'full' ? 'disabled' : '' }}>
+                                        <span><strong>{{ $opt['label'] }}</strong><span>{{ $opt['desc'] }}</span></span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+
                         <label for="admin_position" class="pk-label">Position in the admin team</label>
                         <input type="text" name="position" id="admin_position" maxlength="120" class="pk-input" list="admin-position-list"
-                               value="{{ old('position', $editUser?->role === 'admin' ? $editUser?->position : '') }}" placeholder="Pick one or type a title" autocomplete="off">
+                               value="{{ old('position', in_array($editUser?->role, ['admin', 'facility_staff', 'maintenance_staff'], true) ? $editUser?->position : '') }}" placeholder="Pick one or type a title" autocomplete="off">
                         <datalist id="admin-position-list">
                             @foreach ($adminPositions as $p)<option value="{{ $p }}"></option>@endforeach
                         </datalist>
@@ -142,7 +165,7 @@
                                 <button type="button" class="uu-chip" data-position="{{ $p }}">{{ $p }}</button>
                             @endforeach
                         </div>
-                        <p class="pk-help">Shown on the Admin team list. Every admin has full GSU access.</p>
+                        <p class="pk-help">Shown on the Admin team list.</p>
                     </div>
 
                     <div id="college-field" class="pk-field ucf-unit hidden">
@@ -259,7 +282,9 @@
         $('id-email').textContent = $('email').value.trim() || 'email@example.com';
         $('id-avatar').textContent = name ? name.split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('') : '?';
         const role = checkedRole();
-        $('id-role').textContent = roleLabels[role] || 'No role yet';
+        const access = role === 'admin' ? (form.querySelector('input[name="admin_access"]:checked') || {}).value : '';
+        const accessLabels = { facility_staff: 'Facilities', maintenance_staff: 'Repair & Maintenance' };
+        $('id-role').textContent = accessLabels[access] || roleLabels[role] || 'No role yet';
         $('id-role').classList.toggle('is-empty', !role);
         const unit = role === 'college_staff' ? $('college_name').value
             : role === 'org_staff' ? $('organization_name').value

@@ -83,7 +83,7 @@ class MaintenanceTicketController extends Controller
             "Your repair and maintenance request ({$ticketCode}) was sent to the administrators.",
             $ticketData
         );
-        $this->notifications->notifyAdmins(
+        $this->notifications->notifyRepairTeam(
             'maintenance_ticket_submitted',
             'New repair request',
             "{$ticketCode}: {$ticket->subject} was submitted by " . auth()->user()->name . '.',
@@ -114,7 +114,7 @@ class MaintenanceTicketController extends Controller
         $data = ['ticket_id' => $ticket->id, 'ticket_code' => $ticket->ticket_code, 'message_id' => $message->id];
         $text = auth()->user()->name . " wrote on {$ticket->ticket_code}: " . $this->messagePreview($message);
 
-        $this->notifications->notifyAdmins('maintenance_ticket_message', 'New message on a repair request', $text, $data);
+        $this->notifications->notifyRepairTeam('maintenance_ticket_message', 'New message on a repair request', $text, $data);
 
         // The rest of the college sees the ticket too, so let them know
         foreach (array_diff(auth()->user()->collegeTeamIds(), [auth()->id()]) as $memberId) {

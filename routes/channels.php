@@ -13,7 +13,7 @@ Broadcast::channel('repair-ticket.{ticketId}', function ($user, int $ticketId) {
         return false;
     }
 
-    return $user->isAdmin()
+    return $user->isAdmin() || $user->isMaintenanceStaff()
         || ($user->isCollegeStaff()
             && $ticket->requester?->isCollegeStaff()
             && in_array($user->id, $ticket->requester->collegeTeamIds(), true));

@@ -21,6 +21,8 @@ class StoreFacilityRequest extends FormRequest
             'description'         => 'nullable|string',
             'is_active'           => 'boolean',
             'availability_status' => 'nullable|in:available,unavailable,maintenance',
+            'image'               => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'remove_image'        => 'nullable|boolean',
         ];
     }
 }

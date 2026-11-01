@@ -45,6 +45,11 @@ class FacilitiesFormPdfController extends Controller
             $timeActivity = $timeRange['start'].' - '.$timeRange['end'];
         }
         $purpose        = $payload['purpose'] ?? '';
+        // The template has no slot for unlisted equipment, so it rides along with the purpose.
+        $otherEquipment = collect($payload['equipment_others'] ?? [])->map(fn ($row) => ($row['qty'] ?? 1) . ' ' . ($row['name'] ?? ''))->join(', ');
+        if ($otherEquipment !== '') {
+            $purpose .= ' | Other equipment: ' . $otherEquipment;
+        }
 
         $equipment = $payload['equipment'] ?? [];
 

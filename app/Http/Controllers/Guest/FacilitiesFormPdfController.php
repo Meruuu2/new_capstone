@@ -31,7 +31,7 @@ class FacilitiesFormPdfController extends Controller
 
         // Verify the user owns this submission or is an admin
         $user = $request->user();
-        if (! $request->hasValidSignature(false) && ! ($user?->role === 'admin' || $submission->requester_id === $user?->id)) {
+        if (! $request->hasValidSignature(false) && ! ($user?->managesFacilities() || $submission->requester_id === $user?->id)) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -112,6 +112,7 @@ class FacilitiesFormPdfController extends Controller
             'time_range' => $timeRange,
             'purpose' => $purpose,
             'equipment' => $equipment,
+            'equipment_others' => $payload['equipment_others'] ?? [],
             'noted_name' => $notedName,
             'facility_rows' => $facilityRows,
             'rental_total' => $rentalTotal,

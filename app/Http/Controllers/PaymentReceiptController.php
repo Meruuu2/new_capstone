@@ -31,7 +31,7 @@ class PaymentReceiptController extends Controller
         abort_unless($submission->type === 'facilities_utilization', 404);
 
         $user = auth()->user();
-        $isAdmin = $user?->isAdmin() ?? false;
+        $isAdmin = $user?->managesFacilities() ?? false;
         $isRequester = $user && (int) $submission->requester_id === (int) $user->id;
         $publicTicketIds = array_map('intval', session('public_ticket_ids', []));
         $isPublicRequester = in_array((int) $submission->id, $publicTicketIds, true);

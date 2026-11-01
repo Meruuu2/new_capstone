@@ -195,7 +195,7 @@ class TicketLookupTest extends TestCase
     {
         $notifications = \Mockery::mock(NotificationService::class);
         $notifications->shouldReceive('notifyFormSubmitted')->once();
-        $notifications->shouldReceive('notifyAdmins')->once();
+        $notifications->shouldReceive('notifyFacilityTeam')->once();
         $notifications->shouldReceive('notifyBookingCreated')->once();
         $notifications->shouldReceive('notifyFormApproved')->once();
         $this->app->instance(NotificationService::class, $notifications);

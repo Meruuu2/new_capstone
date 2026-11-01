@@ -24,7 +24,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                 </a>
             </div>
-            <p class="records-hero-sub">Facility bookings, equipment and rental fees for the month.</p>
+            <p class="records-hero-sub">Facility bookings, equipment, rental fees and occupancy for the month.</p>
         </div>
 
         <div class="records-tools">
@@ -187,6 +187,26 @@
                     <div class="records-venue-track" aria-hidden="true"><div class="records-venue-fill" style="width: {{ round($count / $maxVenueCount * 100) }}%"></div></div>
                 </div>
             @endforeach
+        </div>
+    </div>
+
+    <!-- Facility occupancy (formerly the Monthly overview page) -->
+    <div class="records-occupancy">
+        <h3 class="records-section-title">Facility occupancy · {{ date('F Y', mktime(0, 0, 0, $month, 1, $year)) }}</h3>
+        <p class="records-note">Utilization is booked hours ÷ {{ number_format($calendarHours, 0) }} calendar hours this month. Operating hours are not configured.</p>
+        <div class="pk-table-wrap">
+            <table class="pk-table">
+                <thead><tr><th>Facility</th><th class="u-text-right">Booked hours</th><th class="u-text-right">Utilization</th></tr></thead>
+                <tbody>
+                    @foreach ($occupancy as $row)
+                        <tr>
+                            <td class="pk-strong">{{ $row['name'] }}</td>
+                            <td class="u-text-right">{{ number_format($row['booked_hours'], 2) }}</td>
+                            <td class="u-text-right"><strong>{{ number_format($row['utilization'], 2) }}%</strong></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 
